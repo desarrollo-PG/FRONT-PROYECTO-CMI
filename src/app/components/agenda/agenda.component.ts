@@ -57,7 +57,7 @@ export interface ApiResponse<T> {
     SidebarComponent
   ],
   templateUrl: './agenda.component.html',
-  styleUrls: ['./agenda.component.css']
+  styleUrls: ['./agenda.component.scss']
 })
 export class AgendaComponent implements OnInit {
   

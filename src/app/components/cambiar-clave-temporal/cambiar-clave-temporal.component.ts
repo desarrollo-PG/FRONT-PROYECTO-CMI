@@ -13,7 +13,7 @@ import { AlertaService } from '../../services/alerta.service';
     ReactiveFormsModule
   ],
   templateUrl: './cambiar-clave-temporal.component.html',
-  styleUrls: ['./cambiar-clave-temporal.component.css']
+  styleUrls: ['./cambiar-clave-temporal.component.scss']
 })
 export class CambiarClaveTemporalComponent implements OnInit {
   cambiarClaveForm!: FormGroup;

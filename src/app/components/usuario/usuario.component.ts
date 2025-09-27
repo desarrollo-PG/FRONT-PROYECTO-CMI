@@ -23,7 +23,7 @@ export interface ExtendedUser extends Usuario {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, SidebarComponent, FormatoTelefonicoDirective, formatoInputDirective ],
   templateUrl: './usuario.component.html',
-  styleUrls: ['./usuario.component.css']
+  styleUrls: ['./usuario.component.scss']
 })
 export class UsuarioComponent implements OnInit, AfterViewInit {
   currentView: 'list' | 'form' | 'detail' = 'list';
