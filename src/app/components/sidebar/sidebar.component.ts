@@ -34,8 +34,8 @@ export class SidebarComponent {
       label: 'Gestión de usuarios',
       icon: 'fas fa-users',
       children: [
-        { label: 'Usuarios', route: '/usuario' } ,
-        { label: 'Perfiles', route: '/perfil' } 
+        { label: 'Usuarios', route: '/usuario' } 
+        // { label: 'Perfiles', route: '/perfil' } 
       ]
     },
     {
@@ -50,13 +50,13 @@ export class SidebarComponent {
       label: 'Gestión Clinica',
       icon: 'fas fa-hospital',
       children: [
-        { label: 'Agenda', route: '/agenda' },
-        { label: 'Administración', route: '/administracion' }, 
-        { label: 'Educación Inclusiva', route: '/educacion-inclusiva' },
-        { label: 'Fisioterapia', route: '/fisioterapia' },
-        { label: 'Medicina General', route: '/medicina-general' },
-        { label: 'Nutrición', route: '/nutricion' },
-        { label: 'Psicología', route: '/psicologia' }
+        { label: 'Agenda', route: '/agenda' }
+        // { label: 'Administración', route: '/administracion' }, 
+        // { label: 'Educación Inclusiva', route: '/educacion-inclusiva' },
+        // { label: 'Fisioterapia', route: '/fisioterapia' },
+        // { label: 'Medicina General', route: '/medicina-general' },
+        // { label: 'Nutrición', route: '/nutricion' },
+        // { label: 'Psicología', route: '/psicologia' }
       ]
     },
     {

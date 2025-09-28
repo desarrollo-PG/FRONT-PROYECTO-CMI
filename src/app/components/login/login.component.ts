@@ -68,6 +68,10 @@ export class LoginComponent {
     this.correoRecuperacion = '';
     this.error = '';
     this.hideNotification();
+    if (!this.modoOlvidoClave) {
+      this.usuario = '';
+      this.clave = '';
+    }
   }
 
   onSubmitLogin() {

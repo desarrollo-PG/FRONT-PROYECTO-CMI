@@ -1,193 +1,185 @@
 <div class="content-area" [class.sidebar-expanded]="sidebarExpanded">
   <app-sidebar [userInfo]="userInfo"></app-sidebar>
-  <div class="menu-container">
-    <header class="header">
-      <div class="header-content">
-        <div class="header-left">
-          <div class="header-text">
-            <h1 class="title">Gestión de Usuarios</h1>
-          </div>
-          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes" class="logo">
+  <div class="main-content">
+    <header class="page-header">
+      <h1>
+        <div class="logo">
+          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes">
         </div>
+        Gestión de Usuarios
+      </h1>
+      
+      <div class="date-info">
+        Fecha: {{ currentDate | date:'dd/MM/yy' }}
       </div>
     </header>
-  </div>
 
-  <div class="control-card">
-    <div class="search-controls">
-      <div class="search-wrapper">
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Buscar"
-          [(ngModel)]="searchTerm"
-          (input)="filterUsers()"
-        >
-        <button class="btn-add" (click)="showForm()" *ngIf="currentView === 'list'">
-          <i class="fas fa-plus"></i>
-        </button>
+    <div class="main-container" *ngIf="currentView === 'list'">
+      <div class="controls-section">
+        <div class="search-controls">
+          <div class="search-container">
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Buscar"
+              [(ngModel)]="searchTerm"
+              (input)="filterUsers()"
+            >
+          </div>
+          <button class="add-btn" (click)="showForm()" *ngIf="currentView === 'list'">
+            Nuevo Usuario
+          </button>
+        </div>
       </div>
-      
-      <!-- Título y fecha -->
-      <div class="header-info">
-        <div class="date-info">
-          Fecha: {{ currentDate | date:'dd/MM/yy' }}
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre Usuario</th>
+              <th>Rol</th>
+              <th>Correo Institucional</th>
+              <th>Teléfono Institucional</th>
+              <th>extensión</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 🆕 Cambiar filteredUsers por paginatedUsers -->
+            <tr *ngFor="let user of paginatedUsers" class="table-row">
+              <td class="user-name" (click)="viewUser(user)">
+                {{ user.nombres }} {{ user.apellidos}}
+              </td>
+              <td>
+                {{ user.fkrol == 1 ? 'Administrador' : 
+                  user.fkrol == 2 ? 'Doctor' : 
+                  user.fkrol == 3 ? 'Enfermero' : 
+                  user.fkrol == 4 ? 'Psicólogo' : 
+                  user.fkrol == 5 ? 'Fisioterapeuta' : 
+                  user.fkrol == 6 ? 'Nutricionista' : 
+                  user.fkrol == 7 ? 'Recepcionista' : 'Sin rol' }}
+              </td>
+              <td>{{ user.correo }}</td>
+              <td>{{ user.telinstitucional }}</td>
+              <td>{{ user.extension }}</td>
+              <td>
+                <span class="status-badge">
+                  {{ user.estado == 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button 
+                    class="action-btn edit-btn" 
+                    (click)="editUser(user)"
+                    title="Editar"
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    class="action-btn delete-btn" 
+                    (click)="deleteUser(user.idusuario!)"
+                    title="Eliminar"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Estado vacío -->
+        <div *ngIf="filteredUsers.length === 0 && !loading" class="empty-state">
+          <p>No se encontraron usuarios</p>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="loading" class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          Cargando usuarios...
+        </div>
+      </div>
+      <!-- 🆕 CONTROLES DE PAGINACIÓN -->
+      <div class="pagination" *ngIf="totalItems > 0">
+        <!-- Navegación de páginas (solo si hay más de 1 página) -->
+        <div class="pagination-info" *ngIf="totalPages > 1">
+          <!-- Botón anterior -->
+          <button 
+            class="pagination-btn" 
+            [class.disabled]="currentPage === 1"
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <!-- Primera página -->
+          <button 
+            *ngIf="getPages()[0] > 1"
+            class="pagination-btn"
+            (click)="goToPage(1)"
+          >
+            1
+          </button>
+          
+          <!-- Puntos suspensivos si hay salto -->
+          <span *ngIf="getPages()[0] > 2" class="pagination-dots">...</span>
+
+          <!-- Páginas visibles -->
+          <button 
+            *ngFor="let page of getPages()"
+            class="pagination-btn"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+
+          <!-- Puntos suspensivos si hay salto al final -->
+          <span *ngIf="getPages()[getPages().length - 1] < totalPages - 1" class="pagination-dots">...</span>
+
+          <!-- Última página -->
+          <button 
+            *ngIf="getPages()[getPages().length - 1] < totalPages"
+            class="pagination-btn"
+            (click)="goToPage(totalPages)"
+          >
+            {{ totalPages }}
+          </button>
+
+          <!-- Botón siguiente -->
+          <button 
+            class="pagination-btn" 
+            [class.disabled]="currentPage === totalPages"
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- Mostrar mensaje si solo hay una página -->
+        <div *ngIf="totalPages <= 1" class="pagination-single">
+          Página 1 de 1
+        </div>
+
+        <!-- Selector de elementos por página -->
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (ngModelChange)="onItemsPerPageChange()">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+          <span>por página</span>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="main-card" *ngIf="currentView === 'list'">
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Nombre Usuario</th>
-            <th>Rol</th>
-            <th>Correo Institucional</th>
-            <th>Teléfono Institucional</th>
-            <th>extensión</th>
-            <th>Estado</th>
-            <th>Editar</th>
-            <th>Eliminar</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 🆕 Cambiar filteredUsers por paginatedUsers -->
-          <tr *ngFor="let user of paginatedUsers" class="table-row">
-            <td class="user-name" (click)="viewUser(user)">
-              {{ user.nombres }} {{ user.apellidos}}
-            </td>
-            <td>
-              {{ user.fkrol == 1 ? 'Administrador' : 
-                user.fkrol == 2 ? 'Doctor' : 
-                user.fkrol == 3 ? 'Enfermero' : 
-                user.fkrol == 4 ? 'Psicólogo' : 
-                user.fkrol == 5 ? 'Fisioterapeuta' : 
-                user.fkrol == 6 ? 'Nutricionista' : 
-                user.fkrol == 7 ? 'Recepcionista' : 'Sin rol' }}
-            </td>
-            <td>{{ user.correo }}</td>
-            <td>{{ user.telinstitucional }}</td>
-            <td>{{ user.extension }}</td>
-            <td>
-              <span class="status-badge">
-                {{ user.estado == 1 ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td>
-              <button 
-                class="action-btn edit-btn" 
-                (click)="editUser(user)"
-                title="Editar"
-              >
-                Editar
-              </button>
-            </td>
-            <td>
-              <button 
-                class="action-btn delete-btn" 
-                (click)="deleteUser(user.idusuario!)"
-                title="Eliminar"
-              >
-                Eliminar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Estado vacío -->
-      <div *ngIf="filteredUsers.length === 0 && !loading" class="empty-state">
-        <p>No se encontraron usuarios</p>
-      </div>
-
-      <!-- Loading -->
-      <div *ngIf="loading" class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
-        Cargando usuarios...
-      </div>
-    </div>
-
-    <!-- 🆕 CONTROLES DE PAGINACIÓN -->
-    <div class="pagination-container" *ngIf="totalItems > 0">
-      <!-- Navegación de páginas (solo si hay más de 1 página) -->
-      <div class="pagination" *ngIf="totalPages > 1">
-        <!-- Botón anterior -->
-        <button 
-          class="pagination-btn" 
-          [class.disabled]="currentPage === 1"
-          (click)="previousPage()"
-          [disabled]="currentPage === 1"
-        >
-          <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <!-- Primera página -->
-        <button 
-          *ngIf="getPages()[0] > 1"
-          class="pagination-btn"
-          (click)="goToPage(1)"
-        >
-          1
-        </button>
-        
-        <!-- Puntos suspensivos si hay salto -->
-        <span *ngIf="getPages()[0] > 2" class="pagination-dots">...</span>
-
-        <!-- Páginas visibles -->
-        <button 
-          *ngFor="let page of getPages()"
-          class="pagination-btn"
-          [class.active]="page === currentPage"
-          (click)="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <!-- Puntos suspensivos si hay salto al final -->
-        <span *ngIf="getPages()[getPages().length - 1] < totalPages - 1" class="pagination-dots">...</span>
-
-        <!-- Última página -->
-        <button 
-          *ngIf="getPages()[getPages().length - 1] < totalPages"
-          class="pagination-btn"
-          (click)="goToPage(totalPages)"
-        >
-          {{ totalPages }}
-        </button>
-
-        <!-- Botón siguiente -->
-        <button 
-          class="pagination-btn" 
-          [class.disabled]="currentPage === totalPages"
-          (click)="nextPage()"
-          [disabled]="currentPage === totalPages"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-
-      <!-- Mostrar mensaje si solo hay una página -->
-      <div *ngIf="totalPages <= 1" class="pagination-single">
-        Página 1 de 1
-      </div>
-
-      <!-- Selector de elementos por página -->
-      <div class="items-per-page">
-        <label>Mostrar:</label>
-        <select [(ngModel)]="itemsPerPage" (ngModelChange)="onItemsPerPageChange()">
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-        </select>
-        <span>por página</span>
-      </div>
-    </div>
-  </div>
-
-<!-- 🎯 MODAL FORMULARIO MEJORADO -->
 <div class="modal-backdrop" *ngIf="currentView === 'form'" (click)="closeModal()">
   <div class="modal-content-large" (click)="$event.stopPropagation()">
     
@@ -581,12 +573,12 @@
 
     <!-- Footer fijo del modal -->
     <div class="modal-footer">
-      <div *ngIf="isViewMode" class="d-flex gap-2">
+      <div *ngIf="isViewMode" class="modal-actions">
         <button type="button" class="btn-cancel" (click)="closeModal()">
           <i class="fas fa-times"></i> Cerrar
         </button>
       </div>
-      <div *ngIf="!isViewMode" class="d-flex gap-2">
+      <div *ngIf="!isViewMode" class="modal-actions">
         <button type="button" class="btn-cancel" (click)="closeModal()">
           <i class="fas fa-times"></i> Cancelar
         </button>
@@ -608,28 +600,3 @@
 
   </div>
 </div>
-
-  <!-- 👁️ VISTA DETALLE -->
-  <div class="main-card" *ngIf="currentView === 'detail'">
-    <div class="detail-header">
-      <h3>Detalle del Usuario</h3>
-      <div class="detail-actions">
-        <button class="btn-edit" (click)="editUser(selectedUser!)">
-          <i class="fas fa-edit"></i> Editar
-        </button>
-        <button class="btn-back" (click)="showList()">
-          <i class="fas fa-arrow-left"></i> Volver
-        </button>
-      </div>
-    </div>
-
-    <div class="detail-grid" *ngIf="selectedUser">
-      <div class="detail-item">
-        <label>Nombre:</label>
-        <span>{{ selectedUser.nombres }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Email:</label>
-        <span>{{ selectedUser.correo }}</span>
-      </div>
-      <div class="detail-item">

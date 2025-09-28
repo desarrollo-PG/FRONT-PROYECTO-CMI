@@ -1,132 +1,123 @@
 <div class="content-area" [class.sidebar-expanded]="sidebarExpanded">
   <app-sidebar [userInfo]="userInfo"></app-sidebar>
-  <div class="menu-container">
-    <header class="header">
-      <div class="header-content">
-        <div class="header-left">
-          <div class="header-text">
-            <h1 class="title">Agenda</h1>
-          </div>
-          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes" class="logo">
+  <div class="main-content">
+    <header class="page-header">
+      <h1>
+        <div class="logo">
+          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes">
         </div>
-      </div>
+        Agenda
+      </h1>
     </header>
-    
-    <!-- Barra de herramientas -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <button 
-          class="btn btn-primary btn-add"
-          (click)="abrirModalNuevaCita()"
-          title="Nueva Cita">
-          <i class="fas fa-plus"></i>
-        </button>
-      </div>
 
-      <div class="toolbar-center">
-        <!-- Select centrado -->
-        <div class="agenda-controls">
-          <select 
-            class="form-select form-select-sm"
-            [(ngModel)]="selectedMedico"
-            (change)="filtrarPorMedico()"
-            title="Filtrar por médico">
-            <option value="">Todos los médicos</option>
-            <option *ngFor="let medico of medicos" [value]="medico.id">
-              Dr. {{ medico.nombres }} {{ medico.apellidos }}
-            </option>
-          </select>
+    <div class="main-container" *ngIf="currentView === 'list'">
+      <div class="controls-section">
+        <div class="search-controls">
+          
+          <button 
+            class="add-btn"
+            (click)="abrirModalNuevaCita()"
+            title="Nueva Cita">
+            Nueva Cita
+          </button>
+          <div class="agenda-controls">
+            <select 
+              class="form-select form-select-sm"
+              [(ngModel)]="selectedMedico"
+              (change)="filtrarPorMedico()"
+              title="Filtrar por médico">
+              <option value="">Todos los médicos</option>
+              <option *ngFor="let medico of medicos" [value]="medico.id">
+                Dr. {{ medico.nombres }} {{ medico.apellidos }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
       
-      <div class="toolbar-right">
-        <div class="header-right">
-          <span class="fecha">Fecha: {{ fechaActual }}</span>
+      <div class="table-container">
+        <div class="calendar-wrapper">
+          <!-- Loading spinner -->
+          <div *ngIf="loading" class="loading-overlay">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+
+          <!-- Header personalizado del calendario -->
+          <div class="calendar-header">
+            <div class="calendar-nav">
+              <button 
+                class="btn btn-sm btn-outline-secondary"
+                (click)="navegarMes('prev')"
+                title="Mes anterior">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              
+              <h4 class="calendar-title">{{ tituloCalendario }}</h4>
+              
+              <button 
+                class="btn btn-sm btn-outline-secondary"
+                (click)="navegarMes('next')"
+                title="Mes siguiente">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              
+              <div class="calendar-actions">
+                <button 
+                  class="btn btn-sm btn-primary me-2"
+                  (click)="irAHoy()"
+                  title="Ir a hoy">
+                  Hoy
+                </button>
+                
+                <!-- Controles de vista del calendario -->
+                <div class="view-controls">
+                  <button 
+                    class="btn btn-sm"
+                    (click)="cambiarVista('dayGridMonth')"
+                    [class.active]="calendarView === 'dayGridMonth'"
+                    title="Vista Mensual">
+                    <i class="fas fa-calendar"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm"
+                    (click)="cambiarVista('timeGridWeek')"
+                    [class.active]="calendarView === 'timeGridWeek'"
+                    title="Vista Semanal">
+                    <i class="fas fa-calendar-week"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm"
+                    (click)="cambiarVista('timeGridDay')"
+                    [class.active]="calendarView === 'timeGridDay'"
+                    title="Vista Diaria">
+                    <i class="fas fa-calendar-day"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FullCalendar -->
+          <full-calendar [options]="calendarOptions"></full-calendar>          
         </div>
       </div>
-    </div>
 
-    <!-- Calendario directo sin main-content -->
-    <div class="calendar-wrapper">
-      <!-- Loading spinner -->
-      <div *ngIf="loading" class="loading-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-      </div>
-
-      <!-- Header personalizado del calendario -->
-      <div class="calendar-header">
-        <div class="calendar-nav">
-          <button 
-            class="btn btn-sm btn-outline-secondary"
-            (click)="navegarMes('prev')"
-            title="Mes anterior">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          
-          <h4 class="calendar-title">{{ tituloCalendario }}</h4>
-          
-          <button 
-            class="btn btn-sm btn-outline-secondary"
-            (click)="navegarMes('next')"
-            title="Mes siguiente">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-          
-          <div class="calendar-actions">
-            <button 
-              class="btn btn-sm btn-primary me-2"
-              (click)="irAHoy()"
-              title="Ir a hoy">
-              Hoy
-            </button>
-            
-            <!-- Controles de vista aquí -->
-            <div class="view-controls">
-              <button 
-                class="btn btn-sm"
-                (click)="cambiarVista('dayGridMonth')"
-                [class.active]="currentView === 'dayGridMonth'"
-                title="Vista Mensual">
-                <i class="fas fa-calendar"></i>
-              </button>
-              <button 
-                class="btn btn-sm"
-                (click)="cambiarVista('timeGridWeek')"
-                [class.active]="currentView === 'timeGridWeek'"
-                title="Vista Semanal">
-                <i class="fas fa-calendar-week"></i>
-              </button>
-              <button 
-                class="btn btn-sm"
-                (click)="cambiarVista('timeGridDay')"
-                [class.active]="currentView === 'timeGridDay'"
-                title="Vista Diaria">
-                <i class="fas fa-calendar-day"></i>
-              </button>
+      <div class="pagination">
+        <div class="calendar-legend">
+          <h6>Médicos:</h6>
+          <div class="legend-items">
+            <div class="legend-item" *ngFor="let medico of medicos">
+              <span class="color-box" [style.background-color]="getColorPorMedico(medico.id)"></span>
+              <span>Dr. {{ medico.nombres }} {{ medico.apellidos }}</span>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- FullCalendar -->
-      <full-calendar [options]="calendarOptions"></full-calendar>
     </div>
-
-    <!-- Leyenda de colores -->
-    <div class="calendar-legend">
-      <h6>Médicos:</h6>
-      <div class="legend-items">
-        <div class="legend-item" *ngFor="let medico of medicos">
-          <span class="color-box" [style.background-color]="getColorPorMedico(medico.id)"></span>
-          <span>Dr. {{ medico.nombres }} {{ medico.apellidos }}</span>
-        </div>
-      </div>
-    </div>
-
-  </div> <!-- Cerrar menu-container -->
-</div> <!-- Cerrar content-area -->
+  </div>
+</div>
 
 <!-- Modal para crear/editar/ver citas -->
 <div 

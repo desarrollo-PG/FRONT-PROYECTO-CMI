@@ -34,7 +34,7 @@ export class PantallaBienvenidaComponent implements OnInit {
       if (this.progreso >= 100) {
         clearInterval(intervalo);
         setTimeout(() => {
-          this.router.navigate(['/menu']);
+          this.router.navigate(['/usuario']);
         }, 500);
       }
     }, 300);
