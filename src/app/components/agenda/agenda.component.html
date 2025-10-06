@@ -8,12 +8,16 @@
         </div>
         Agenda
       </h1>
+      <div class="toolbar-right">
+        <div class="header-right">
+          <span class="fecha">Fecha: {{ fechaActual }}</span>
+        </div>
+      </div>
     </header>
-
+    
     <div class="main-container" *ngIf="currentView === 'list'">
       <div class="controls-section">
         <div class="search-controls">
-          
           <button 
             class="add-btn"
             (click)="abrirModalNuevaCita()"
@@ -24,18 +28,18 @@
             <select 
               class="form-select form-select-sm"
               [(ngModel)]="selectedMedico"
-              (change)="filtrarPorMedico()"
+              
               title="Filtrar por médico">
               <option value="">Todos los médicos</option>
-              <option *ngFor="let medico of medicos" [value]="medico.id">
-                Dr. {{ medico.nombres }} {{ medico.apellidos }}
+              <option *ngFor="let medico of usuario" [value]="medico.idusuario">
+                {{ medico.nombres }} {{ medico.apellidos }} 
               </option>
             </select>
           </div>
         </div>
       </div>
-      
       <div class="table-container">
+        <!-- Calendario directo sin main-content -->
         <div class="calendar-wrapper">
           <!-- Loading spinner -->
           <div *ngIf="loading" class="loading-overlay">
@@ -71,26 +75,26 @@
                   Hoy
                 </button>
                 
-                <!-- Controles de vista del calendario -->
+                <!-- Controles de vista aquí -->
                 <div class="view-controls">
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('dayGridMonth')"
-                    [class.active]="calendarView === 'dayGridMonth'"
+                    [class.active]="calendarView  === 'dayGridMonth'"
                     title="Vista Mensual">
                     <i class="fas fa-calendar"></i>
                   </button>
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('timeGridWeek')"
-                    [class.active]="calendarView === 'timeGridWeek'"
+                    [class.active]="calendarView  === 'timeGridWeek'"
                     title="Vista Semanal">
                     <i class="fas fa-calendar-week"></i>
                   </button>
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('timeGridDay')"
-                    [class.active]="calendarView === 'timeGridDay'"
+                    [class.active]="calendarView  === 'timeGridDay'"
                     title="Vista Diaria">
                     <i class="fas fa-calendar-day"></i>
                   </button>
@@ -98,26 +102,24 @@
               </div>
             </div>
           </div>
-          
           <!-- FullCalendar -->
-          <full-calendar [options]="calendarOptions"></full-calendar>          
+          <full-calendar #calendar [options]="calendarOptions"></full-calendar>
         </div>
       </div>
-
       <div class="pagination">
         <div class="calendar-legend">
           <h6>Médicos:</h6>
           <div class="legend-items">
-            <div class="legend-item" *ngFor="let medico of medicos">
-              <span class="color-box" [style.background-color]="getColorPorMedico(medico.id)"></span>
-              <span>Dr. {{ medico.nombres }} {{ medico.apellidos }}</span>
+            <div class="legend-item" *ngFor="let medico of usuario">
+              <span class="color-box" [style.background-color]="getColorPorMedico(medico.idusuario)"></span>
+              <span>{{ medico.nombres }} {{ medico.apellidos }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
+  </div> <!-- Cerrar menu-container -->
+</div> <!-- Cerrar content-area -->
 
 <!-- Modal para crear/editar/ver citas -->
 <div 
@@ -155,10 +157,14 @@
             <div class="col-md-12">
               <div class="mb-3">
                 <label for="paciente" class="form-label">Paciente *</label>
-                <select class="form-select" id="paciente" formControlName="fkpaciente" required>
+                <select class="form-select" 
+                        id="paciente" 
+                        formControlName="fkpaciente" 
+                        (change)="onPacienteSeleccionado($event)"
+                        required>
                   <option value="">Seleccionar paciente</option>
-                  <option *ngFor="let paciente of pacientes" [value]="paciente.id">
-                    {{ paciente.nombres }} {{ paciente.apellidos }}
+                  <option *ngFor="let pac of paciente" [value]="pac.idpaciente">
+                    {{ pac.nombres }} {{ pac.apellidos }}
                   </option>
                 </select>
               </div>
@@ -185,8 +191,8 @@
                 <label for="medico" class="form-label">Nombre del Profesional *</label>
                 <select class="form-select" id="medico" formControlName="fkusuario" required>
                   <option value="">Seleccionar médico</option>
-                  <option *ngFor="let medico of medicos" [value]="medico.id">
-                    Dr. {{ medico.nombres }} {{ medico.apellidos }}
+                  <option *ngFor="let medico of usuario" [value]="medico.idusuario">
+                    {{ medico.nombres }} {{ medico.apellidos }}
                   </option>
                 </select>
               </div>
@@ -227,6 +233,12 @@
           </div>
           
           <div class="row" *ngIf="citaForm.get('transporte')?.value">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="fechatransporte" class="form-label">Fecha Transporte</label>
+                <input type="date" class="form-control" id="fechatransporte" formControlName="fechatransporte">
+              </div>
+            </div>
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="horaTransporte" class="form-label">Horario de transporte</label>

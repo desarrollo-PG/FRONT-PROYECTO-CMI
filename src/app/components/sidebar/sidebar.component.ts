@@ -59,15 +59,15 @@ export class SidebarComponent {
         // { label: 'Psicología', route: '/psicologia' }
       ]
     },
-    {
-      label: 'Acerca de',
-      icon: 'fas fa-info-circle',
-      children: [
-        { label: 'Quienes somos', route: '/acerca/nosotros' },
-        { label: 'Misión y visión', route: '/acerca/mision' },
-        { label: 'Contáctanos', route: '/acerca/contacto' }
-      ]
-    },
+    // {
+    //   label: 'Acerca de',
+    //   icon: 'fas fa-info-circle',
+    //   children: [
+    //     { label: 'Quienes somos', route: '/acerca/nosotros' },
+    //     { label: 'Misión y visión', route: '/acerca/mision' },
+    //     { label: 'Contáctanos', route: '/acerca/contacto' }
+    //   ]
+    // },
     {
       label: 'Cerrar Sesion',
       icon: 'fas fa-sign-out-alt',

@@ -60,7 +60,8 @@ onEscapeKey(event: KeyboardEvent): void {
   modoEdicion = false;
   cargando = false;
   subiendoArchivos = false;
-
+  currentDate = new Date();
+  searchTerm = '';
   //Paginación
    currentPage = 1;
   itemsPerPage = 10;

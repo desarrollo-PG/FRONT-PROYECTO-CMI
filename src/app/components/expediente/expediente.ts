@@ -41,7 +41,7 @@ export class ExpedienteListaComponent implements OnInit, AfterViewInit, OnDestro
   expedientesFiltrados: Expediente[] = [];
   expedienteSeleccionado: Expediente | null = null;
   estadisticas: EstadisticasExpediente | null = null;
-
+  currentDate = new Date();
   // Variables de paginación 
   currentPage = 1;
   itemsPerPage = 10;

@@ -1,11 +1,12 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
 // FullCalendar imports
 import { FullCalendarModule } from '@fullcalendar/angular';
+import { FullCalendarComponent } from '@fullcalendar/angular';
 import { CalendarOptions, EventClickArg, DateSelectArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -15,6 +16,10 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ArchivoService } from '../../services/archivo.service';
+import { UsuarioService, Usuario } from '../../services/usuario.service';
+import { AlertaService } from '../../services/alerta.service';
+import { Paciente, ServicioPaciente } from '../../services/paciente.service';
+import { AgendaService, CitaRequest } from '../../services/agenda.service';
 
 // Interfaces
 export interface Cita {
@@ -27,9 +32,6 @@ export interface Cita {
   transporte?: number;
   fechatransporte?: string;
   horariotransporte?: string;
-  direccionTransporte?: string;
-  nombreEncargado?: string;
-  contactoEncargado?: string;
   usuario: {
     nombres: string;
     apellidos: string;
@@ -63,27 +65,16 @@ export interface ApiResponse<T> {
   styleUrls: ['./agenda.component.scss']
 })
 export class AgendaComponent implements OnInit, AfterViewInit {
+
+  @ViewChild('calendar') calendarComponent!: FullCalendarComponent;
   
-  // ============================================
-  // VARIABLES DE CONTROL DE VISTAS (SEPARADAS)
-  // ============================================
-  
-  // Para el componente (mostrar lista, formulario, etc.)
-  currentView: 'list' | 'form' | 'detail' = 'list';
-  
-  // Para el calendario de FullCalendar (NUEVA VARIABLE)
-  calendarView: 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' = 'dayGridMonth';
-  
-  // ============================================
-  // CONFIGURACIÓN DEL CALENDARIO
-  // ============================================
-  
+  // Configuración del calendario
   calendarOptions: CalendarOptions = {
     initialView: 'dayGridMonth',
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    headerToolbar: false, // Desactivar toolbar de FullCalendar
+    headerToolbar: false,
     locale: 'es',
-    firstDay: 1, // Lunes como primer día
+    firstDay: 1,
     height: 'auto',
     
     // Configuración de eventos
@@ -109,9 +100,7 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     
     // Configuración de días
     weekends: true,
-    editable: false, // Deshabilitar edición por drag
-    
-    // Mostrar números de semana
+    editable: false,
     weekNumbers: false,
     
     // Configuración de slots de tiempo
@@ -120,27 +109,26 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     slotDuration: '01:00:00'
   };
 
-  // ============================================
-  // VARIABLES DE ESTADO
-  // ============================================
-  
+  // Variables de estado
   currentEvents: any[] = [];
   showModal = false;
   modalMode: 'create' | 'edit' | 'view' = 'create';
   selectedDate: string = '';
   selectedCita: Cita | null = null;
   selectedMedico: string = '';
+  currentView: string = 'list';
+  calendarView: string = 'dayGridMonth';
   loading = false;
   searchTerm: string = '';
   fechaActual: string = '';
   tituloCalendario: string = '';
   sidebarExpanded: boolean = false;
   userInfo: any = {};
+  usuario: Usuario[] = [];
+  paciente: Paciente[] = [];
+  private calendarApi: any = null;
 
-  // ============================================
-  // DATOS PARA FORMULARIOS
-  // ============================================
-  
+  // Datos para formularios
   medicos: any[] = [
     { id: 1, nombres: 'Juan', apellidos: 'Pérez' },
     { id: 2, nombres: 'María', apellidos: 'García' },
@@ -148,42 +136,32 @@ export class AgendaComponent implements OnInit, AfterViewInit {
   ];
 
   pacientes: any[] = [
-    { id: 1, nombres: 'Ana', apellidos: 'Martínez', cui: '1234567890123' },
-    { id: 2, nombres: 'Luis', apellidos: 'Rodríguez', cui: '9876543210987' },
-    { id: 3, nombres: 'Carmen', apellidos: 'Silva', cui: '5555555555555' }
+    { id: 1, nombres: 'Ana', apellidos: 'Martínez' },
+    { id: 2, nombres: 'Luis', apellidos: 'Rodríguez' },
+    { id: 3, nombres: 'Carmen', apellidos: 'Silva' }
   ];
 
   slotsDisponibles: any[] = [
-    { hora: '08:00' },
-    { hora: '09:00' },
-    { hora: '10:00' },
-    { hora: '11:00' },
-    { hora: '14:00' },
-    { hora: '15:00' },
-    { hora: '16:00' },
-    { hora: '17:00' }
+    { hora: '08:00:00' },
+    { hora: '09:00:00' },
+    { hora: '10:00:00' },
+    { hora: '11:00:00' },
+    { hora: '14:00:00' },
+    { hora: '15:00:00' },
+    { hora: '16:00:00' },
+    { hora: '17:00:00' }
   ];
 
-  // ============================================
-  // FORMULARIO REACTIVO
-  // ============================================
-  
   citaForm!: FormGroup;
 
-  // ============================================
-  // DATOS DE EJEMPLO
-  // ============================================
-  
   citasEjemplo: Cita[] = [
     {
       idagenda: 1,
       fkusuario: 1,
       fkpaciente: 1,
-      fechaatencion: '2025-09-30',
-      horaatencion: '09:00',
+      fechaatencion: '2025-09-15',
+      horaatencion: '09:00:00',
       comentario: 'Consulta de control',
-      nombreEncargado: 'Pedro Martínez',
-      contactoEncargado: '+502 1234-5678',
       usuario: { nombres: 'Juan', apellidos: 'Pérez', profesion: 'Medicina General' },
       paciente: { nombres: 'Ana', apellidos: 'Martínez', cui: '1234567890123' }
     },
@@ -191,65 +169,45 @@ export class AgendaComponent implements OnInit, AfterViewInit {
       idagenda: 2,
       fkusuario: 2,
       fkpaciente: 2,
-      fechaatencion: '2025-09-30',
-      horaatencion: '14:00',
+      fechaatencion: '2025-09-15',
+      horaatencion: '14:00:00',
       comentario: 'Primera consulta',
-      nombreEncargado: 'Carmen Rodríguez',
-      contactoEncargado: '+502 9876-5432',
       usuario: { nombres: 'María', apellidos: 'García', profesion: 'Pediatría' },
       paciente: { nombres: 'Luis', apellidos: 'Rodríguez', cui: '9876543210987' }
-    },
-    {
-      idagenda: 3,
-      fkusuario: 3,
-      fkpaciente: 3,
-      fechaatencion: '2025-10-01',
-      horaatencion: '10:00',
-      comentario: 'Revisión mensual',
-      nombreEncargado: 'José Silva',
-      contactoEncargado: '+502 5555-5555',
-      usuario: { nombres: 'Carlos', apellidos: 'López', profesion: 'Cardiología' },
-      paciente: { nombres: 'Carmen', apellidos: 'Silva', cui: '5555555555555' }
     }
   ];
 
-  // ============================================
-  // CONSTRUCTOR
-  // ============================================
+  private currentUserId: string = '1';
 
   constructor(
     private archivoService: ArchivoService,
-    private fb: FormBuilder
+    private UsuarioService: UsuarioService,
+    private PacienteService: ServicioPaciente,
+    private alerta: AlertaService,
+    private fb: FormBuilder,
+    private agendaService: AgendaService
   ) {
     this.initForm();
     this.fechaActual = new Date().toLocaleDateString('es-ES');
     this.tituloCalendario = format(new Date(), 'MMMM yyyy', { locale: es });
   }
 
-  // ============================================
-  // LIFECYCLE HOOKS
-  // ============================================
-
   ngOnInit(): void {
+    this.currentUserId = this.getCurrentUserId();
     this.cargarCitas();
     this.loadUserInfo();
+    this.cargarUsuariosPorRol();
+    this.ListarPacientes();
   }
 
   ngAfterViewInit(): void {
-    // Esperar a que el DOM esté completamente renderizado
     setTimeout(() => {
       this.detectSidebarState();
-      
-      // Resize inicial para asegurar que el calendario se muestre correctamente
       setTimeout(() => {
         this.resizeCalendar();
       }, 500);
     }, 100);
   }
-
-  // ============================================
-  // MÉTODOS DE INICIALIZACIÓN
-  // ============================================
 
   loadUserInfo(): void {
     try {
@@ -268,45 +226,75 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     }
   }
 
-  initForm(): void {
-    this.citaForm = this.fb.group({
-      fkpaciente: ['', Validators.required],
-      nombreEncargado: [{ value: '', disabled: true }, Validators.required],
-      contactoEncargado: [{ value: '', disabled: true }, Validators.required],
-      fkusuario: ['', Validators.required],
-      fechaatencion: ['', Validators.required],
-      horaatencion: ['', Validators.required],
-      comentario: [''],
-      transporte: [false],
-      horariotransporte: [''],
-      direccionTransporte: ['']
-    });
-
-    // Listener para auto-llenar datos del paciente
-    this.citaForm.get('fkpaciente')?.valueChanges.subscribe(pacienteId => {
-      if (pacienteId) {
-        const paciente = this.pacientes.find(p => p.id == pacienteId);
-        if (paciente) {
-          // Simular datos del encargado (en proyecto real vendrían del backend)
-          this.citaForm.patchValue({
-            nombreEncargado: `Encargado de ${paciente.nombres}`,
-            contactoEncargado: `+502 1234-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`
-          });
+  private getCurrentUserId(): string {
+    try {
+      const usuarioData = localStorage.getItem('usuario');
+      if (usuarioData) {
+        const usuario = JSON.parse(usuarioData);
+        const userId = usuario.idusuario;
+        if (userId) {
+          return userId.toString();
         }
       }
-    });
+    } catch (error) {
+      console.error('Error al obtener el ID del usuario desde localStorage:', error);
+    }
+    return '1';
+  }
 
-    // Listener para fecha - actualizar slots disponibles
-    this.citaForm.get('fechaatencion')?.valueChanges.subscribe(fecha => {
-      if (fecha) {
-        this.actualizarSlotsDisponibles(fecha);
+  private getCalendarApi(): any {
+    if (this.calendarComponent) {
+      return this.calendarComponent.getApi();
+    }
+    return null;
+  }
+
+  cargarUsuariosPorRol(): void {
+    this.UsuarioService.obtenerUsuariosPorRol(2).subscribe({
+      next: (usuariosPorRol) => {
+        this.usuario = usuariosPorRol;
+      },
+      error: (error) => {
+        console.error('Error al cargar los usuarios por roles: ', error);
+        this.alerta.alertaError('Error al cargar los usuarios por roles');
       }
     });
   }
 
-  // ============================================
-  // MÉTODOS DEL SIDEBAR
-  // ============================================
+  ListarPacientes(): void {
+    this.PacienteService.obtenerListadoPacientes().subscribe({
+      next: (listadoUsuario) => { 
+        this.paciente = listadoUsuario;
+      },
+      error: (error) => {
+        console.error('Error al cargar los pacientes: ', error);
+        this.alerta.alertaError('Error al cargar pacientes');
+      }
+    });
+  }
+
+  onPacienteSeleccionado(event: any): void {
+    const idPacienteSeleccionado = event.target.value;
+    
+    if (!idPacienteSeleccionado) {
+      this.citaForm.patchValue({
+        nombreEncargado: '',
+        contactoEncargado: ''
+      });
+      return;
+    }
+
+    const pacienteSeleccionado = this.paciente.find(
+      p => p.idpaciente == idPacienteSeleccionado
+    );
+
+    if (pacienteSeleccionado) {
+      this.citaForm.patchValue({
+        nombreEncargado: pacienteSeleccionado.nombreencargado || '',
+        contactoEncargado: pacienteSeleccionado.telefonoencargado || ''
+      });
+    }
+  }
 
   detectSidebarState(): void {
     const checkSidebar = () => {
@@ -321,8 +309,6 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         
         if (this.sidebarExpanded !== isExpanded) {
           this.sidebarExpanded = isExpanded;
-          console.log('Sidebar state changed:', isExpanded);
-          
           setTimeout(() => {
             this.resizeCalendar();
           }, 400);
@@ -366,49 +352,50 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
   private resizeCalendar(): void {
     try {
-      const fullCalendarElement = document.querySelector('full-calendar') as any;
-      if (fullCalendarElement && fullCalendarElement.getApi) {
-        const calendarApi = fullCalendarElement.getApi();
-        console.log('Resizing calendar via API...');
-        calendarApi.updateSize();
+      if (this.calendarComponent) {
+        const api = this.calendarComponent.getApi();
+        api.updateSize();
         return;
       }
-
-      const calendarComponent = document.querySelector('full-calendar ng-component') as any;
-      if (calendarComponent && calendarComponent.calendar) {
-        console.log('Resizing calendar via component...');
-        calendarComponent.calendar.updateSize();
-        return;
-      }
-
       window.dispatchEvent(new Event('resize'));
-      console.log('Forced window resize event');
-
     } catch (error) {
       console.error('Error resizing calendar:', error);
-      window.dispatchEvent(new Event('resize'));
     }
   }
 
-  // ============================================
-  // MÉTODOS DE CARGA DE DATOS
-  // ============================================
+  public forceCalendarResize(): void {
+    this.resizeCalendar();
+  }
+
+  initForm(): void {
+    this.citaForm = this.fb.group({
+      fkpaciente: ['', Validators.required],
+      fkusuario: ['', Validators.required],
+      fechaatencion: ['', Validators.required],
+      horaatencion: ['', Validators.required],
+      comentario: [''],
+      transporte: [0],
+      fechatransporte: [''],
+      horariotransporte: [''],
+      direcciontransporte: [''],
+      nombreEncargado: [{value: '', disabled: true}],
+      contactoEncargado: [{value: '', disabled: true}]
+    });
+  }
 
   async cargarCitas(): Promise<void> {
     this.loading = true;
     try {
-      // Simular llamada al backend
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const citas = this.selectedMedico 
         ? this.citasEjemplo.filter(c => c.fkusuario.toString() === this.selectedMedico)
         : this.citasEjemplo;
       
-      // Convertir citas a eventos de FullCalendar
       this.calendarOptions.events = citas.map(cita => ({
         id: cita.idagenda.toString(),
         title: `${cita.paciente.nombres} ${cita.paciente.apellidos}`,
-        start: `${cita.fechaatencion}T${cita.horaatencion}:00`,
+        start: `${cita.fechaatencion}T${cita.horaatencion}`,
         backgroundColor: this.getColorPorMedico(cita.fkusuario),
         borderColor: this.getColorPorMedico(cita.fkusuario),
         textColor: '#ffffff',
@@ -421,10 +408,12 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         }
       }));
       
-      // Forzar actualización del calendario
       this.calendarOptions = { ...this.calendarOptions };
       
-      setTimeout(() => this.resizeCalendar(), 100);
+      setTimeout(() => {
+        this.getCalendarApi();
+        this.resizeCalendar();
+      }, 100);
     } catch (error) {
       console.error('Error cargando citas:', error);
     } finally {
@@ -432,22 +421,14 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // ============================================
-  // MÉTODOS DEL CALENDARIO
-  // ============================================
-
   handleDateSelect(selectInfo: DateSelectArg): void {
     this.selectedDate = selectInfo.startStr;
     this.modalMode = 'create';
     this.selectedCita = null;
-    this.citaForm.patchValue({
-      fechaatencion: selectInfo.startStr
-    });
     this.showModal = true;
   }
 
   handleEventClick(clickInfo: EventClickArg): void {
-    const citaId = parseInt(clickInfo.event.id);
     this.modalMode = 'view';
     this.selectedCita = clickInfo.event.extendedProps['citaCompleta'];
     this.showModal = true;
@@ -458,56 +439,28 @@ export class AgendaComponent implements OnInit, AfterViewInit {
   }
 
   handleDatesSet(dateInfo: any): void {
-    this.tituloCalendario = format(dateInfo.start, 'MMMM yyyy', { locale: es });
+    // Obtener la fecha actual de la vista del calendario
+    const api = this.getCalendarApi();
+    if (api) {
+      const currentDate = api.getDate(); // Esta es la fecha real del calendario
+      this.tituloCalendario = format(currentDate, 'MMMM yyyy', { locale: es });
+    }
+    
     setTimeout(() => this.resizeCalendar(), 100);
   }
 
-  // ============================================
-  // MÉTODOS DE NAVEGACIÓN DEL CALENDARIO
-  // ============================================
-
-  cambiarVista(vista: 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'): void {
-    this.calendarView = vista;
-    const calendarApi = (document.querySelector('full-calendar') as any)?.getApi();
-    if (calendarApi) {
-      calendarApi.changeView(vista);
-      setTimeout(() => this.resizeCalendar(), 100);
-    }
+  getColorPorMedico(medicoId: number): string {
+    const colores = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+    ];
+    return colores[medicoId % colores.length];
   }
-
-  navegarMes(direccion: 'prev' | 'next'): void {
-    const calendarApi = (document.querySelector('full-calendar') as any)?.getApi();
-    if (calendarApi) {
-      if (direccion === 'prev') {
-        calendarApi.prev();
-      } else {
-        calendarApi.next();
-      }
-      setTimeout(() => this.resizeCalendar(), 100);
-    }
-  }
-
-  irAHoy(): void {
-    const calendarApi = (document.querySelector('full-calendar') as any)?.getApi();
-    if (calendarApi) {
-      calendarApi.today();
-      setTimeout(() => this.resizeCalendar(), 100);
-    }
-  }
-
-  // ============================================
-  // MÉTODOS DEL MODAL
-  // ============================================
 
   abrirModalNuevaCita(): void {
     this.selectedDate = format(new Date(), 'yyyy-MM-dd');
     this.modalMode = 'create';
     this.selectedCita = null;
-    this.citaForm.reset();
-    this.citaForm.patchValue({
-      fechaatencion: this.selectedDate,
-      transporte: false
-    });
     this.showModal = true;
   }
 
@@ -519,73 +472,117 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
   editarCita(): void {
     this.modalMode = 'edit';
-    if (this.selectedCita) {
-      this.citaForm.patchValue({
-        fkpaciente: this.selectedCita.fkpaciente,
-        nombreEncargado: this.selectedCita.nombreEncargado || '',
-        contactoEncargado: this.selectedCita.contactoEncargado || '',
-        fkusuario: this.selectedCita.fkusuario,
-        fechaatencion: this.selectedCita.fechaatencion,
-        horaatencion: this.selectedCita.horaatencion,
-        comentario: this.selectedCita.comentario || '',
-        transporte: this.selectedCita.transporte === 1,
-        horariotransporte: this.selectedCita.horariotransporte || '',
-        direccionTransporte: this.selectedCita.direccionTransporte || ''
-      });
-    }
   }
 
-  async guardarCita(): Promise<void> {
+  guardarCita(): void {
     if (this.citaForm.invalid) {
-      console.log('Formulario inválido');
+      this.alerta.alertaError('Por favor complete todos los campos requeridos');
       return;
     }
 
     this.loading = true;
-    try {
-      const formData = this.citaForm.value;
-      console.log('Guardando cita:', formData);
-      
-      // Simular guardado
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // En proyecto real: await this.agendaService.saveCita(formData).toPromise();
-      
-      await this.cargarCitas();
-      this.cerrarModal();
-    } catch (error) {
-      console.error('Error guardando cita:', error);
-    } finally {
-      this.loading = false;
+    const currentUserId = this.getCurrentUserId();
+
+    const horaSeleccionada = this.citaForm.get('horaatencion')?.value;
+    const horaFormateada = horaSeleccionada.includes(':00:00') 
+      ? horaSeleccionada 
+      : horaSeleccionada.length === 5 
+        ? `${horaSeleccionada}:00` 
+        : horaSeleccionada;
+
+    const transporteValue = this.citaForm.get('transporte')?.value;
+    const transporteNumero = transporteValue ? 1 : 0;
+    
+    const datosCita: CitaRequest = {
+      fkusuario: parseInt(this.citaForm.get('fkusuario')?.value),
+      fkpaciente: parseInt(this.citaForm.get('fkpaciente')?.value),
+      fechaatencion: this.citaForm.get('fechaatencion')?.value,
+      horaatencion: horaFormateada,
+      comentario: this.citaForm.get('comentario')?.value || '',
+      transporte: transporteNumero,
+      fechatransporte: this.citaForm.get('fechatransporte')?.value || null,
+      horariotransporte: this.citaForm.get('horariotransporte')?.value || null,
+      usuariocreacion: currentUserId,
+      estado: 1
+    };
+
+    if (this.modalMode === 'create') {
+      this.agendaService.crearCita(datosCita).subscribe({
+        next: (response) => {
+          if (response.exito || response.success) {
+            this.alerta.alertaExito('Cita creada exitosamente');
+            this.cargarCitas();
+            this.cerrarModal();
+          } else {
+            this.alerta.alertaError(response.mensaje || response.message || 'Error al crear la cita');
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error al crear cita:', error);
+          this.alerta.alertaError('Error interno del servidor');
+          this.loading = false;
+        }
+      });
+    } else if (this.modalMode === 'edit' && this.selectedCita) {
+      this.agendaService.actualizarCita(this.selectedCita.idagenda, datosCita).subscribe({
+        next: (response) => {
+          if (response.exito || response.success) {
+            this.alerta.alertaExito('Cita actualizada exitosamente');
+            this.cargarCitas();
+            this.cerrarModal();
+          } else {
+            this.alerta.alertaError(response.mensaje || response.message || 'Error al actualizar la cita');
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error al actualizar cita:', error);
+          this.alerta.alertaError('Error interno del servidor');
+          this.loading = false;
+        }
+      });
     }
   }
 
   async eliminarCita(): Promise<void> {
-    if (!this.selectedCita) return;
-    
     if (confirm('¿Está seguro de eliminar esta cita?')) {
-      this.loading = true;
-      try {
-        console.log('Eliminando cita:', this.selectedCita.idagenda);
-        
-        // Simular eliminación
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // En proyecto real: await this.agendaService.deleteCita(this.selectedCita.idagenda).toPromise();
-        
-        await this.cargarCitas();
-        this.cerrarModal();
-      } catch (error) {
-        console.error('Error eliminando cita:', error);
-      } finally {
-        this.loading = false;
-      }
+      console.log('Eliminando cita...');
+      await this.cargarCitas();
+      this.cerrarModal();
     }
   }
 
-  // ============================================
-  // MÉTODOS DE FILTRADO Y BÚSQUEDA
-  // ============================================
+  cambiarVista(vista: string): void {
+    this.calendarView = vista;
+    if (this.calendarComponent) {
+      const api = this.calendarComponent.getApi();
+      api.changeView(vista);
+      setTimeout(() => this.resizeCalendar(), 100);
+    }
+  }
+
+  navegarMes(direccion: 'prev' | 'next'): void {
+    if (!this.calendarComponent) {
+      console.error('Componente de calendario no disponible');
+      return;
+    }
+    
+    const api = this.calendarComponent.getApi();
+    
+    if (direccion === 'prev') {
+      api.prev();
+    } else {
+      api.next();
+    }
+  }
+
+  irAHoy(): void {
+    if (this.calendarComponent) {
+      const api = this.calendarComponent.getApi();
+      api.today();
+    }
+  }
 
   async filtrarPorMedico(): Promise<void> {
     await this.cargarCitas();
@@ -593,51 +590,5 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
   buscarCitas(): void {
     console.log('Buscando:', this.searchTerm);
-    // Implementar búsqueda de citas
-  }
-
-  // ============================================
-  // MÉTODOS AUXILIARES
-  // ============================================
-
-  getColorPorMedico(medicoId: number): string {
-    const colores = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
-    ];
-    return colores[medicoId % colores.length];
-  }
-
-  private actualizarSlotsDisponibles(fecha: string): void {
-    // Aquí implementarías la lógica para obtener slots disponibles por fecha
-    // En proyecto real consultarías al backend
-    console.log('Actualizando slots para fecha:', fecha);
-  }
-
-  // ============================================
-  // MÉTODOS DE DEBUG (PUEDES REMOVERLOS)
-  // ============================================
-
-  public forceCalendarResize(): void {
-    this.resizeCalendar();
-  }
-
-  public debugCalendarSize(): void {
-    const calendarWrapper = document.querySelector('.calendar-wrapper') as HTMLElement;
-    const fullCalendar = document.querySelector('full-calendar') as HTMLElement;
-    
-    console.log('Calendar wrapper dimensions:', {
-      width: calendarWrapper?.clientWidth,
-      offsetWidth: calendarWrapper?.offsetWidth,
-      scrollWidth: calendarWrapper?.scrollWidth
-    });
-    
-    console.log('FullCalendar dimensions:', {
-      width: fullCalendar?.clientWidth,
-      offsetWidth: fullCalendar?.offsetWidth,
-      scrollWidth: fullCalendar?.scrollWidth
-    });
-    
-    console.log('Sidebar expanded:', this.sidebarExpanded);
   }
 }
