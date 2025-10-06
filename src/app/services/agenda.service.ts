@@ -13,6 +13,7 @@ export interface CitaRequest {
   transporte?: number;
   fechatransporte?: string | null;
   horariotransporte?: string | null;
+  direccion: string | null;
   usuariocreacion: string;
   estado: number;
 }

@@ -32,6 +32,7 @@ export interface Cita {
   transporte?: number;
   fechatransporte?: string;
   horariotransporte?: string;
+  direccion?: string;
   usuario: {
     nombres: string;
     apellidos: string;
@@ -377,7 +378,7 @@ export class AgendaComponent implements OnInit, AfterViewInit {
       transporte: [0],
       fechatransporte: [''],
       horariotransporte: [''],
-      direcciontransporte: [''],
+      direccion: [''],
       nombreEncargado: [{value: '', disabled: true}],
       contactoEncargado: [{value: '', disabled: true}]
     });
@@ -502,6 +503,7 @@ export class AgendaComponent implements OnInit, AfterViewInit {
       transporte: transporteNumero,
       fechatransporte: this.citaForm.get('fechatransporte')?.value || null,
       horariotransporte: this.citaForm.get('horariotransporte')?.value || null,
+      direccion: this.citaForm.get('direccion')?.value || null,
       usuariocreacion: currentUserId,
       estado: 1
     };
