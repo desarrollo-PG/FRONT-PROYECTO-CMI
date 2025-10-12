@@ -32,14 +32,13 @@
               title="Filtrar por médico">
               <option value="">Todos los médicos</option>
               <option *ngFor="let medico of usuario" [value]="medico.idusuario">
-                {{ medico.nombres }} {{ medico.apellidos }} 
+                Dr. {{ medico.nombres }} {{ medico.apellidos }} 
               </option>
             </select>
           </div>
         </div>
       </div>
       <div class="table-container">
-        <!-- Calendario directo sin main-content -->
         <div class="calendar-wrapper">
           <!-- Loading spinner -->
           <div *ngIf="loading" class="loading-overlay">
@@ -75,26 +74,25 @@
                   Hoy
                 </button>
                 
-                <!-- Controles de vista aquí -->
                 <div class="view-controls">
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('dayGridMonth')"
-                    [class.active]="calendarView  === 'dayGridMonth'"
+                    [class.active]="calendarView === 'dayGridMonth'"
                     title="Vista Mensual">
                     <i class="fas fa-calendar"></i>
                   </button>
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('timeGridWeek')"
-                    [class.active]="calendarView  === 'timeGridWeek'"
+                    [class.active]="calendarView === 'timeGridWeek'"
                     title="Vista Semanal">
                     <i class="fas fa-calendar-week"></i>
                   </button>
                   <button 
                     class="btn btn-sm"
                     (click)="cambiarVista('timeGridDay')"
-                    [class.active]="calendarView  === 'timeGridDay'"
+                    [class.active]="calendarView === 'timeGridDay'"
                     title="Vista Diaria">
                     <i class="fas fa-calendar-day"></i>
                   </button>
@@ -102,6 +100,7 @@
               </div>
             </div>
           </div>
+          
           <!-- FullCalendar -->
           <full-calendar #calendar [options]="calendarOptions"></full-calendar>
         </div>
@@ -112,7 +111,7 @@
           <div class="legend-items">
             <div class="legend-item" *ngFor="let medico of usuario">
               <span class="color-box" [style.background-color]="getColorPorMedico(medico.idusuario)"></span>
-              <span>{{ medico.nombres }} {{ medico.apellidos }}</span>
+              <span> Dr. {{ medico.nombres }} {{ medico.apellidos }}</span>
             </div>
           </div>
         </div>
@@ -162,7 +161,7 @@
                         formControlName="fkpaciente" 
                         (change)="onPacienteSeleccionado($event)"
                         required>
-                  <option value="">Seleccionar paciente</option>
+                  <option [value]="''" >Seleccionar paciente</option>
                   <option *ngFor="let pac of paciente" [value]="pac.idpaciente">
                     {{ pac.nombres }} {{ pac.apellidos }}
                   </option>
@@ -189,10 +188,13 @@
             <div class="col-md-12">
               <div class="mb-3">
                 <label for="medico" class="form-label">Nombre del Profesional *</label>
-                <select class="form-select" id="medico" formControlName="fkusuario" required>
-                  <option value="">Seleccionar médico</option>
+                <select class="form-select" 
+                        id="medico" 
+                        formControlName="fkusuario" 
+                        required>
+                  <option [value]="''" >Seleccionar profesional</option>
                   <option *ngFor="let medico of usuario" [value]="medico.idusuario">
-                    {{ medico.nombres }} {{ medico.apellidos }}
+                    Dr. {{ medico.nombres }} {{ medico.apellidos }}
                   </option>
                 </select>
               </div>
@@ -201,15 +203,18 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="fecha" class="form-label">Fecha *</label>
-                <input type="date" class="form-control" id="fecha" formControlName="fechaatencion" required>
+                <input type="date" class="form-control" id="fechaatencion" formControlName="fechaatencion" required>
               </div>
             </div>
             
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="hora" class="form-label">Horarios disponibles *</label>
-                <select class="form-select" id="hora" formControlName="horaatencion" required>
-                  <option value="">Seleccionar hora</option>
+                <select class="form-select" 
+                        id="hora" 
+                        formControlName="horaatencion" 
+                        required>
+                  <option [value]="''" disabled>Seleccionar horario</option>
                   <option *ngFor="let slot of slotsDisponibles" [value]="slot.hora">
                     {{ slot.hora }}
                   </option>
@@ -255,45 +260,101 @@
         
         <!-- Vista de detalles -->
         <div *ngIf="modalMode === 'view' && selectedCita" class="cita-details">
-          <div class="row">
+          <div class="row mb-4">
             <div class="col-md-6">
-              <h6>Paciente:</h6>
-              <p>{{ selectedCita.paciente.nombres }} {{ selectedCita.paciente.apellidos }}</p>
-              <small class="text-muted">CUI: {{ selectedCita.paciente.cui }}</small>
+              <div class="info-card">
+                <h6 class="info-label">
+                  <i class="fas fa-user-injured text-primary me-2"></i>Paciente
+                </h6>
+                <p class="info-value">{{ selectedCita.paciente?.nombres }} {{ selectedCita.paciente?.apellidos }}</p>
+                <div class="info-details">
+                  <small class="d-block mb-1">
+                    <i class="fas fa-user me-2"></i>
+                    <strong>Encargado:</strong> {{ selectedCita.paciente?.nombreencargado || 'No disponible' }}
+                  </small>
+                  <small class="d-block">
+                    <i class="fas fa-phone me-2"></i>
+                    <strong>Contacto:</strong> {{ selectedCita.paciente?.telefonoencargado || 'No disponible' }}
+                  </small>
+                </div>
+              </div>
             </div>
+            
             <div class="col-md-6">
-              <h6>Médico:</h6>
-              <p>Dr. {{ selectedCita.usuario.nombres }} {{ selectedCita.usuario.apellidos }}</p>
-              <small class="text-muted">{{ selectedCita.usuario.profesion }}</small>
+              <div class="info-card">
+                <h6 class="info-label">
+                  <i class="fas fa-user-md text-success me-2"></i>Profesional
+                </h6>
+                <p class="info-value">Dr. {{ selectedCita.usuario?.nombres }} {{ selectedCita.usuario?.apellidos }}</p>
+              </div>
             </div>
           </div>
           
-          <div class="row mt-3">
+          <!-- Fecha y Hora -->
+          <div class="row mb-4">
             <div class="col-md-6">
-              <h6>Fecha:</h6>
-              <p>{{ selectedCita.fechaatencion | date:'fullDate':'':'es' }}</p>
+              <div class="info-card">
+                <h6 class="info-label">
+                  <i class="fas fa-calendar text-info me-2"></i>Fecha
+                </h6>
+                <p class="info-value">{{ selectedCita.fechaatencion }}</p>
+              </div>
             </div>
+            
             <div class="col-md-6">
-              <h6>Hora:</h6>
-              <p>{{ selectedCita.horaatencion }}</p>
+              <div class="info-card">
+                <h6 class="info-label">
+                  <i class="fas fa-clock text-warning me-2"></i>Hora
+                </h6>
+                <p class="info-value">{{ selectedCita.horaatencion }}</p>
+              </div>
             </div>
           </div>
           
-          <div class="row mt-3" *ngIf="selectedCita.comentario">
+          <!-- Comentarios -->
+          <div class="row mb-4" *ngIf="selectedCita.comentario">
             <div class="col-12">
-              <h6>Comentarios:</h6>
-              <p>{{ selectedCita.comentario }}</p>
+              <div class="info-card">
+                <h6 class="info-label">
+                  <i class="fas fa-comment-alt text-secondary me-2"></i>Comentarios
+                </h6>
+                <p class="info-value mb-0">{{ selectedCita.comentario }}</p>
+              </div>
             </div>
           </div>
           
-          <div class="row mt-3" *ngIf="selectedCita.transporte">
+          <!-- Transporte -->
+          <div class="row" *ngIf="selectedCita.transporte && selectedCita.transporte !== 0">
             <div class="col-12">
-              <h6>Transporte:</h6>
-              <p>
-                <i class="fas fa-bus text-primary"></i>
-                Fecha: {{ selectedCita.fechatransporte | date:'shortDate':'':'es' }}
-                Hora: {{ selectedCita.horariotransporte }}
-              </p>
+              <div class="info-card transporte-card">
+                <h6 class="info-label">
+                  <i class="fas fa-bus text-primary me-2"></i>Información de Transporte
+                </h6>
+                <div class="transporte-details">
+                  <div class="row">
+                    <div class="col-md-6 mb-2">
+                      <small class="d-block">
+                        <i class="fas fa-calendar me-2"></i>
+                        <strong>Fecha:</strong> {{ selectedCita.fechatransporte || 'No especificada' }}
+                      </small>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <small class="d-block">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Hora:</strong> {{ selectedCita.horariotransporte || 'No especificada' }}
+                      </small>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12">
+                      <small class="d-block">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <strong>Dirección:</strong> {{ selectedCita.direccion || 'No especificada' }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -304,21 +365,24 @@
           type="button" 
           class="btn btn-secondary" 
           (click)="cerrarModal()">
+          <i class="fas fa-times me-1"></i>
           Cerrar
         </button>
         
-        <div *ngIf="modalMode === 'view'" class="btn-group">
+        <div *ngIf="modalMode === 'view'" class="btn-actions">
           <button 
             type="button" 
-            class="btn btn-primary"
+            class="btn btn-primary me-2"
             (click)="editarCita()">
-            <i class="fas fa-edit"></i> Editar
+            <i class="fas fa-edit me-1"></i>
+            Editar
           </button>
           <button 
             type="button" 
             class="btn btn-danger"
             (click)="eliminarCita()">
-            <i class="fas fa-trash"></i> Eliminar
+            <i class="fas fa-trash me-1"></i>
+            Eliminar
           </button>
         </div>
         
@@ -326,9 +390,9 @@
           *ngIf="modalMode === 'create' || modalMode === 'edit'"
           type="button" 
           class="btn btn-primary btn-save"
-          [disabled]="citaForm.invalid"
+          [disabled]="citaForm.invalid || loading"
           (click)="guardarCita()">
-          <i class="fas fa-save"></i>
+          <i class="fas fa-save me-1"></i>
           {{ modalMode === 'create' ? 'Crear Cita' : 'Guardar Cambios' }}
         </button>
       </div>

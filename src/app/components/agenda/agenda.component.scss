@@ -1,23 +1,36 @@
-
 @import '../../styles/variables';
 @import '../../styles/mixins';
 @import '../../styles/modal';
 
-// Heredar TODOS los estilos base que ya tienes
 :host {
   display: block;
-  
-  // Incluir TODO el sistema que ya funciona
   @include data-table-module;
 }
 
 // ================================================
-// SOBREESCRIBIR ESTILOS ESPECÍFICOS PARA AGENDA
+// LAYOUT PRINCIPAL
 // ================================================
 
-// Arreglar el layout de los controles para agenda
+.main-content {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 200px);
+  padding: 20px;
+  gap: 20px;
+}
+
+// ================================================
+// CONTROLES
+// ================================================
+
 .controls-section {
-  // Mantener el estilo de card del mixin base
+  flex-shrink: 0;
+  
   .search-controls {
     @include flex-between;
     gap: $spacing-6;
@@ -32,7 +45,6 @@
   }
 }
 
-// Controles específicos de agenda (que no tienes en usuarios)
 .agenda-controls {
   display: flex;
   gap: $spacing-3;
@@ -47,255 +59,493 @@
 }
 
 // ================================================
-// ESTILOS PARA EL CALENDARIO (nuevos)
+// CONTENEDOR DEL CALENDARIO
 // ================================================
 
+.table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px; // ← IMPORTANTE: Altura mínima
+}
+
 .calendar-wrapper {
-  background: $white;
-  border-radius: $border-radius-xl;
-  overflow: hidden;
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px; // ← IMPORTANTE
   position: relative;
 }
+
+// ================================================
+// LOADING OVERLAY
+// ================================================
 
 .loading-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(255, 255, 255, 0.9);
-  @include flex-center;
-  z-index: 10;
-  
-  .spinner-border {
-    width: 3rem;
-    height: 3rem;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border-radius: 15px;
 }
+
+// ================================================
+// HEADER PERSONALIZADO DEL CALENDARIO
+// ================================================
 
 .calendar-header {
-  background: linear-gradient(135deg, $primary-color, lighten($primary-color, 10%));
-  color: white;
-  padding: $spacing-4;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #dee2e6;
+  flex-shrink: 0;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.calendar-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: capitalize;
+  flex: 1;
+  text-align: center;
+  min-width: 200px;
+}
+
+.calendar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// ================================================
+// CONTROLES DE VISTA - COLORES AZULES
+// ================================================
+
+.view-controls {
+  display: flex;
+  gap: 0;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  overflow: hidden;
   
-  .calendar-nav {
-    @include flex-between;
-    gap: $spacing-4;
-    flex-wrap: wrap;
-  }
-  
-  .calendar-title {
-    font-size: $font-size-xl;
-    font-weight: 600;
-    margin: 0;
-    color: white;
-  }
-  
-  .calendar-actions {
-    @include flex-start;
-    gap: $spacing-3;
-  }
-  
-  .view-controls {
-    @include flex-start;
-    gap: $spacing-1;
+  .btn {
+    border: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: #495057 !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease;
     
-    .btn {
-      padding: $spacing-2;
-      min-width: 40px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      border-radius: $border-radius-sm;
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-      
-      &.active {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-      }
+    &:hover {
+      background: #f8f9fa !important;
+      color: #4a90e2 !important; // ← AZUL
+    }
+    
+    &.active {
+      background: #4a90e2 !important; // ← AZUL
+      color: white !important;
     }
   }
 }
 
-// Personalización de FullCalendar
+// ================================================
+// ESTILOS DE FULLCALENDAR
+// ================================================
+
 ::ng-deep {
+  // Contenedor principal
   .fc {
-    font-family: $font-family;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100% !important;
+    min-height: 500px !important; // ← IMPORTANTE
+  }
+  
+  // Ocultar toolbar default
+  .fc-toolbar,
+  .fc-header-toolbar {
+    display: none !important;
+  }
+  
+  // Vista principal - CRÍTICO PARA MOSTRAR TODAS LAS FILAS
+  .fc-view-harness {
+    height: auto !important; // ← CAMBIADO
+    min-height: 500px !important; // ← AÑADIDO
+  }
+  
+  // Contenedor scrollable
+  .fc-scroller {
+    overflow: visible !important; // ← CRÍTICO
+    height: auto !important; // ← CRÍTICO
+  }
+  
+  .fc-scroller-liquid-absolute {
+    position: relative !important; // ← CRÍTICO
+    overflow: visible !important; // ← CRÍTICO
+  }
+  
+  // Tabla del calendario
+  .fc-scrollgrid {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: visible; // ← CAMBIADO
+    width: 100% !important;
+    height: auto !important; // ← CAMBIADO
+  }
+  
+  .fc-scrollgrid-sync-table {
+    width: 100% !important;
+    height: auto !important; // ← AÑADIDO
+  }
+  
+  // Header de días - COLOR AZUL
+  .fc-col-header {
+    background: #4a90e2; // ← AZUL
+  }
+  
+  .fc-col-header-cell {
+    background: #4a90e2; // ← AZUL
+    padding: 15px 8px;
+    text-align: center;
+    font-weight: 700;
+    border: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     
-    .fc-toolbar { display: none; } // Ocultar header default
+    .fc-col-header-cell-cushion {
+      color: white !important;
+      font-weight: 700 !important;
+    }
+  }
+  
+  // Celdas de días
+  .fc-daygrid-day {
+    background: white;
+    transition: all 0.2s ease;
+    border-right: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    min-height: 120px; // ← AUMENTADO
+    cursor: pointer;
+    
+    &:hover {
+      background: #f8f9fa;
+    }
+    
+    &.fc-day-today {
+      background: rgba(74, 144, 226, 0.08); // ← AZUL
+    }
+  }
+  
+  // Frame interno de cada día
+  .fc-daygrid-day-frame {
+    min-height: 120px; // ← AUMENTADO
+    padding: 4px;
+  }
+  
+  // Top de la celda (donde va el número)
+  .fc-daygrid-day-top {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+  
+  // Números de día
+  .fc-daygrid-day-number {
+    color: #495057;
+    font-weight: 500;
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .fc-day-today .fc-daygrid-day-number {
+    background: #4a90e2; // ← AZUL
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  
+  // Eventos
+  .fc-event {
+    border: none !important;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    margin: 2px 0;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+  }
+  
+  .fc-event-title {
+    font-weight: 500;
+  }
+  
+  .fc-daygrid-event-harness {
+    margin: 1px 2px;
+  }
+  
+  // Botón "más eventos"
+  .fc-daygrid-more-link {
+    color: #4a90e2; // ← AZUL
+    font-weight: 600;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(74, 144, 226, 0.1); // ← AZUL
+    
+    &:hover {
+      background: rgba(74, 144, 226, 0.2); // ← AZUL
+      text-decoration: none;
+    }
+  }
+  
+  // ================================================
+  // VISTA SEMANAL Y DIARIA
+  // ================================================
+  
+  .fc-timegrid {
+    .fc-timegrid-axis {
+      border-right: 1px solid #dee2e6;
+    }
+    
+    .fc-timegrid-slot {
+      height: 3em;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .fc-timegrid-slot-label {
+      border-right: 1px solid #dee2e6;
+      font-size: 12px;
+      color: #6c757d;
+      padding: 0 8px;
+    }
+    
+    .fc-timegrid-event {
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
     
     .fc-col-header-cell {
-      background: $gray-100;
-      border-color: $gray-200;
-      font-weight: 600;
-      color: $gray-700;
-      padding: $spacing-3;
+      padding: 12px 8px;
     }
-    
-    .fc-daygrid-day {
-      border-color: $gray-200;
-      
-      &:hover {
-        background: $gray-50;
-      }
-    }
-    
-    .fc-day-today {
-      background: rgba($primary-color, 0.05);
-      
-      .fc-daygrid-day-number {
-        background: $primary-color;
-        color: white;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        @include flex-center;
-      }
-    }
-    
-    .fc-event {
-      border: none;
-      border-radius: $border-radius-sm;
-      font-size: $font-size-xs;
-      font-weight: 600;
-      cursor: pointer;
-      transition: $transition-normal;
-      
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      }
+  }
+  
+  // Hacer que las vistas de semana y día sean más visibles
+  .fc-timeGridWeek-view,
+  .fc-timeGridDay-view {
+    .fc-scroller {
+      overflow-y: auto !important;
+      max-height: 600px;
     }
   }
 }
 
-// Leyenda del calendario
+// ================================================
+// LEYENDA DE COLORES - ANCHO COMPLETO
+// ================================================
+
+.pagination {
+  flex-shrink: 0;
+  margin-top: 20px;
+  width: 100%; // ← AÑADIDO
+}
+
 .calendar-legend {
-  padding: $spacing-4;
-  border-top: 1px solid $gray-200;
-  background: $gray-50;
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%; // ← AÑADIDO
+  box-sizing: border-box;
   
   h6 {
-    margin-bottom: $spacing-3;
-    color: $gray-700;
+    margin-bottom: 15px;
+    color: #495057;
     font-weight: 600;
+    font-size: 14px;
   }
   
   .legend-items {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-3;
+    gap: 20px; // ← AUMENTADO
+    width: 100%;
   }
   
   .legend-item {
-    @include flex-start;
-    gap: $spacing-2;
-    font-size: $font-size-sm;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    min-width: 200px; // ← AÑADIDO para mejor distribución
     
     .color-box {
-      width: 16px;
-      height: 16px;
-      border-radius: $border-radius-sm;
+      width: 20px; // ← AUMENTADO
+      height: 20px; // ← AUMENTADO
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
     }
   }
 }
 
 // ================================================
-// ESTILOS ESPECÍFICOS PARA EL MODAL
+// ESTILOS DEL MODAL
 // ================================================
 
-// Modal backdrop
 .modal-backdrop {
   @include modal-backdrop;
-  
-  // Contenedor del modal grande
-  .modal-content-large {
-    @include modal-container(900px);
-  }
 }
 
-// Header del modal específicamente
 .modal-header {
   @include modal-header($primary-color);
 }
 
-// Body del modal con scroll
-.modal-body-scroll {
-  @include modal-body;
+.modal-body {
+  padding: 30px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
-// Footer del modal
 .modal-footer {
   @include modal-footer;
 }
 
-// ================================================
-// FORMULARIO DENTRO DEL MODAL
-// ================================================
-
-.user-form {
-  @include modal-form;
-}
-
-// Sección de foto
-.photo-section {
-  @include modal-photo-section;
-}
-
-// ================================================
-// CLASES AUXILIARES PARA EL MODAL
-// ================================================
-
-.d-flex {
-  display: flex;
+// Info cards en vista de detalles
+.info-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #4a90e2; // ← AZUL
   
-  &.gap-2 {
-    gap: $spacing-3;
-  }
-}
-
-// ================================================
-// RESPONSIVE ESPECÍFICO PARA MODAL
-// ================================================
-
-@include mobile {
-  .modal-content-large {
-    width: 98%;
-    max-height: 98vh;
-    margin: $spacing-2;
+  .info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 8px;
+    text-transform: uppercase;
   }
   
-  .modal-header {
-    padding: $spacing-4;
+  .info-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #212529;
+    margin: 0;
+  }
+  
+  .info-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
     
-    h3 {
-      font-size: $font-size-lg;
-    }
-  }
-  
-  .modal-body-scroll {
-    padding: $spacing-4;
-  }
-  
-  .modal-footer {
-    padding: $spacing-4;
-    
-    .d-flex {
-      flex-direction: column;
+    small {
+      color: #6c757d;
       
-      .btn-cancel,
-      .btn-save {
-        flex: none;
-        width: 100%;
+      i {
+        color: #4a90e2; // ← AZUL
       }
     }
   }
+}
+
+.transporte-card {
+  border-left-color: #ffc107;
   
-  .user-form .form-section .form-grid {
-    grid-template-columns: 1fr;
+  .transporte-details {
+    margin-top: 10px;
+  }
+}
+
+// ================================================
+// RESPONSIVE
+// ================================================
+
+@include mobile {
+  .main-container {
+    min-height: auto;
+    padding: 10px;
+  }
+  
+  .calendar-wrapper {
+    padding: 15px;
+    min-height: 400px;
+  }
+  
+  .calendar-nav {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .calendar-title {
+      text-align: center;
+      font-size: 1.2rem;
+    }
+    
+    .calendar-actions {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+  
+  .view-controls {
+    width: 100%;
+    
+    .btn {
+      flex: 1;
+    }
+  }
+  
+  .legend-items {
+    flex-direction: column;
+    
+    .legend-item {
+      width: 100%;
+    }
+  }
+  
+  ::ng-deep {
+    .fc-daygrid-day {
+      min-height: 80px;
+    }
+    
+    .fc-daygrid-day-frame {
+      min-height: 80px;
+    }
+    
+    .fc-event {
+      font-size: 10px;
+      padding: 2px 4px;
+    }
   }
 }
