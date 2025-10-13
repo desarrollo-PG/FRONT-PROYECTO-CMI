@@ -549,3 +549,86 @@
     }
   }
 }
+
+// ================================================
+// ESTILOS PARA MODAL DE REPORTE
+// ================================================
+
+.modal-xl {
+  max-width: 95%;
+  
+  @media (min-width: 1200px) {
+    max-width: 1400px;
+  }
+}
+
+.table-responsive {
+  max-height: 500px;
+  overflow-y: auto;
+  
+  table {
+    margin-bottom: 0;
+    
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      
+      th {
+        background: #4a90e2;
+        color: white;
+        font-weight: 600;
+        padding: 12px 8px;
+        font-size: 13px;
+        border: none;
+        text-align: center;
+        vertical-align: middle;
+      }
+    }
+    
+    tbody {
+      tr {
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #f8f9fa;
+          transform: scale(1.01);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        td {
+          padding: 12px 8px;
+          font-size: 13px;
+          vertical-align: middle;
+          
+          small {
+            font-size: 11px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.badge {
+  font-size: 12px;
+  padding: 6px 10px;
+  font-weight: 500;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+// Mejorar el backdrop para múltiples modales
+.modal-backdrop {
+  &:nth-of-type(2) {
+    z-index: 1051;
+  }
+}
+
+.modal {
+  &:nth-of-type(2) {
+    z-index: 1052;
+  }
+}

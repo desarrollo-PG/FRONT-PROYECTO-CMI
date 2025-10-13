@@ -131,6 +131,11 @@ export class AgendaComponent implements OnInit, AfterViewInit {
   paciente: Paciente[] = [];
   private calendarApi: any = null;
 
+  showModalReporte = false;
+  reporteTransportes: any[] = [];
+  fechaReporte: string = '';
+  loadingReporte = false;
+
   slotsDisponibles: any[] = [
     { hora: '08:00:00' },
     { hora: '09:00:00' },
@@ -706,5 +711,84 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
   buscarCitas(): void {
     console.log('Buscando:', this.searchTerm);
+  }
+
+  abrirModalReporte(): void {
+    const fechaHoy = format(new Date(), 'yyyy-MM-dd');
+    this.fechaReporte = fechaHoy;
+    this.showModalReporte = true;
+    
+    // Cargar automáticamente el reporte del día actual
+    this.generarReporte();
+  }
+
+  cerrarModalReporte(): void {
+    this.showModalReporte = false;
+    this.reporteTransportes = [];
+    this.fechaReporte = '';
+  }
+
+  generarReporte(): void {
+    if (!this.fechaReporte) {
+      this.alerta.alertaError('Por favor seleccione una fecha');
+      return;
+    }
+    
+    this.loadingReporte = true;
+    
+    this.agendaService.obtenerCitasConTransporte(this.fechaReporte).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.reporteTransportes = response.data;
+          
+          if (this.reporteTransportes.length === 0) {
+            this.alerta.alertaInfo('No hay citas con transporte para la fecha seleccionada');
+          }
+        } else {
+          this.alerta.alertaError('Error al generar el reporte');
+        }
+        this.loadingReporte = false;
+      },
+      error: (error) => {
+        console.error('Error al generar reporte:', error);
+        this.alerta.alertaError('Error al generar el reporte de transportes');
+        this.loadingReporte = false;
+      }
+    });
+  }
+
+  exportarReportePDF(): void {
+    // Implementar después si lo necesitas
+    this.alerta.alertaInfo('Función de exportar a PDF en desarrollo');
+  }
+
+  exportarReporteExcel(): void {
+    // Implementar después si lo necesitas
+    this.alerta.alertaInfo('Función de exportar a Excel en desarrollo');
+  }
+
+  formatearHora(hora: any): string {
+    if (!hora) return 'N/A';
+    
+    // Si es un string con formato completo de timestamp
+    if (typeof hora === 'string') {
+      // Si tiene microsegundos: "1970-01-01T08:30:00.000Z"
+      if (hora.includes('T')) {
+        return hora.split('T')[1].substring(0, 5); // Retorna HH:mm
+      }
+      // Si ya es formato de hora: "08:30:00"
+      if (hora.includes(':')) {
+        return hora.substring(0, 5); // Retorna HH:mm
+      }
+    }
+    
+    // Si es un objeto Date
+    if (hora instanceof Date) {
+      const horas = hora.getHours().toString().padStart(2, '0');
+      const minutos = hora.getMinutes().toString().padStart(2, '0');
+      return `${horas}:${minutos}`;
+    }
+    
+    return hora.toString().substring(0, 5);
   }
 }

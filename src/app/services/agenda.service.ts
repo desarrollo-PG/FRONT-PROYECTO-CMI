@@ -142,4 +142,10 @@ export class AgendaService {
       })
     );
   }
+
+  obtenerCitasConTransporte(fecha: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/transporte`, {
+      params: { fecha }
+    });
+  }
 }

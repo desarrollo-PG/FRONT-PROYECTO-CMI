@@ -280,7 +280,7 @@
           <i class="fas fa-times"></i>
         </button>
       </div>
- 
+
       <!-- Cuerpo del modal con scroll -->
       <div class="modal-body-scroll">
         
@@ -354,48 +354,46 @@
         </div>
 
         <!-- Sección de documentos -->
-        <div class="seccion-documentos">
+        <div class="photo-section">
           <h4 class="titulo-seccion">
             <i class="fas fa-file-contract"></i> Documentos Adicionales (Opcional)
           </h4>
           
-          <div class="tarjeta-documento">
-            <div class="contenedor-vista-previa-documento">
+          <div class="tarjeta-foto">
+            <div class="vista-previa-foto-circulo" style="border-radius: 8px;">
               <div class="vista-previa-documento" *ngIf="cartaSeleccionada">
                 <div class="icono-documento" *ngIf="esCartaPDF">
                   <i class="fas fa-file-pdf"></i>
                   <span>PDF</span>
                 </div>
-                <img *ngIf="!esCartaPDF" [src]="cartaSeleccionada" alt="Carta Autorización" class="imagen-documento">
+                <img *ngIf="!esCartaPDF" [src]="cartaSeleccionada" alt="Carta Autorización" class="imagen-foto-circulo">
               </div>
-              <div *ngIf="!cartaSeleccionada" class="marcador-posicion-documento">
+              <div *ngIf="!cartaSeleccionada" class="marcador-posicion-foto-circulo">
                 <i class="fas fa-file-upload"></i>
-                <span>Carta de Autorización</span>
-                <small>Formatos: JPG, PNG, PDF</small>
               </div>
             </div>
             
-            <div class="acciones-documento">
-              <input 
-                type="file" 
-                #entradaArchivoCarta 
-                (change)="alSeleccionarFoto($event, 'carta')" 
-                accept="image/*,application/pdf" 
-                style="display: none;"
-              >
-              <button type="button" class="boton-subir-documento" (click)="entradaArchivoCarta.click()">
-                <i class="fas fa-upload"></i>
-                {{ cartaSeleccionada ? 'Cambiar Documento' : 'Subir Documento' }}
-              </button>
-              <button 
-                *ngIf="cartaSeleccionada" 
-                type="button" 
-                class="boton-eliminar-documento" 
-                (click)="eliminarFoto('carta')"
-              >
-                <i class="fas fa-trash"></i> Eliminar
-              </button>
-            </div>
+            <label class="etiqueta-foto">Carta de Autorización</label>
+            
+            <input 
+              type="file" 
+              #entradaArchivoCarta 
+              (change)="alSeleccionarFoto($event, 'carta')" 
+              accept="image/*,application/pdf" 
+              style="display: none;"
+            >
+            <button type="button" class="boton-subir-foto" (click)="entradaArchivoCarta.click()">
+              <i class="fas fa-upload"></i>
+              {{ cartaSeleccionada ? 'Cambiar Documento' : 'Subir Documento' }}
+            </button>
+            <button 
+              *ngIf="cartaSeleccionada" 
+              type="button" 
+              class="boton-eliminar-foto" 
+              (click)="eliminarFoto('carta')"
+            >
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
           </div>
         </div>
 
@@ -489,39 +487,39 @@
           </div>
 
           <!-- Información de contacto -->
-          <div class="seccion-formulario">
-            <h4 class="titulo-seccion">
+          <div class="form-section">
+            <h4 class="section-title">
               <i class="fas fa-phone"></i> Información de Contacto
             </h4>
-            <div class="grilla-formulario">
-              <div class="grupo-formulario">
+            <div class="form-grid">
+              <div class="form-group">
                 <label>Teléfono Personal</label>
                 <input 
                   type="text" 
                   formControlName="telefonopersonal"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="+502 4444-4444"
                   maxlength="14"
                   appPhoneFormat
                 >
               </div>
 
-              <div class="grupo-formulario">
+              <div class="form-group">
                 <label>Nombre del Contacto de Emergencia</label>
                 <input 
                   type="text" 
                   formControlName="nombrecontactoemergencia"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="Nombre completo del contacto"
                 >
               </div>
 
-              <div class="grupo-formulario">
+              <div class="form-group">
                 <label>Teléfono de Emergencia</label>
                 <input 
                   type="text" 
                   formControlName="telefonoemergencia"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="+502 4444-4444"
                   maxlength="14"
                   appPhoneFormat
@@ -531,38 +529,38 @@
           </div>
 
           <!-- Información del encargado -->
-          <div class="seccion-formulario">
-            <h4 class="titulo-seccion">
+          <div class="form-section">
+            <h4 class="section-title">
               <i class="fas fa-user-friends"></i> Información del Encargado/Responsable
             </h4>
-            <div class="grilla-formulario">
-              <div class="grupo-formulario">
+            <div class="form-grid">
+              <div class="form-group">
                 <label>Nombre del Encargado</label>
                 <input 
                   type="text" 
                   formControlName="nombreencargado"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="Nombre completo del encargado o responsable"
                 >
               </div>
 
-              <div class="grupo-formulario">
+              <div class="form-group">
                 <label>DPI del Encargado</label>
                 <input 
                   type="text" 
                   formControlName="dpiencargado"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="1234567890101"
                   maxlength="13"
                 >
               </div>
 
-              <div class="grupo-formulario">
+              <div class="form-group">
                 <label>Teléfono del Encargado</label>
                 <input 
                   type="text" 
                   formControlName="telefonoencargado"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="+502 4444-4444"
                   maxlength="14"
                   appPhoneFormat
@@ -572,17 +570,17 @@
           </div>
 
           <!-- Información adicional -->
-          <div class="seccion-formulario">
-            <h4 class="titulo-seccion">
+          <div class="form-section">
+            <h4 class="section-title">
               <i class="fas fa-info-circle"></i> Información Médica Adicional
             </h4>
-            <div class="grilla-formulario">
-              <div class="grupo-formulario">
+            <div class="form-grid">
+              <div class="form-group">
                 <label>Tipo de Discapacidad</label>
                 <input 
                   type="text" 
                   formControlName="tipodiscapacidad" 
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="Ej: Ninguna, Física, Visual, Auditiva"
                   list="listaTipoDiscapacidad"
                 >
@@ -601,43 +599,43 @@
           </div>
 
           <!-- Información de dirección -->
-          <div class="seccion-formulario">
-            <h4 class="titulo-seccion">
+          <div class="form-section">
+            <h4 class="section-title">
               <i class="fas fa-map-marker-alt"></i> Información de Ubicación
             </h4>
-            <div class="grilla-formulario">
-              <div class="grupo-formulario">
+            <div class="form-grid">
+              <div class="form-group">
                 <label>Municipio *</label>
                 <input 
                   type="text" 
                   formControlName="municipio"
-                  class="entrada-formulario"
+                  class="form-input"
                   [class.error]="esCampoInvalido('municipio')"
                   placeholder="Nombre del municipio"
                 >
-                <div *ngIf="esCampoInvalido('municipio')" class="texto-error">{{ obtenerErrorCampo('municipio') }}</div>
+                <div *ngIf="esCampoInvalido('municipio')" class="error-message">{{ obtenerErrorCampo('municipio') }}</div>
               </div>
 
-              <div class="grupo-formulario">
+              <div class="form-group">
                 <label>Aldea/Zona/Colonia</label>
                 <input 
                   type="text" 
                   formControlName="aldea"
-                  class="entrada-formulario"
+                  class="form-input"
                   placeholder="Aldea, zona o colonia"
                 >
               </div>
 
-              <div class="grupo-formulario ancho-completo">
-                <label>Completar Direccion *</label>
+              <div class="form-group ancho-completo">
+                <label>Completar Dirección *</label>
                 <textarea
                   formControlName="direccion"
-                  class="area-texto-formulario"
+                  class="form-input"
                   [class.error]="esCampoInvalido('direccion')"
                   rows="3"
                   placeholder="Ingrese la dirección detallada del paciente"
                 ></textarea>
-                <div *ngIf="esCampoInvalido('direccion')" class="texto-error">{{ obtenerErrorCampo('direccion') }}</div>
+                <div *ngIf="esCampoInvalido('direccion')" class="error-message">{{ obtenerErrorCampo('direccion') }}</div>
               </div>
             </div>
           </div>
@@ -647,7 +645,7 @@
 
       <!-- Pie del modal fijo -->
       <div class="modal-footer">
-        <div class="modal-actions">
+        <div class="d-flex gap-2">
           <button type="button" class="btn-cancel" (click)="cerrarModal()">
             <i class="fas fa-times"></i> Cancelar
           </button>
