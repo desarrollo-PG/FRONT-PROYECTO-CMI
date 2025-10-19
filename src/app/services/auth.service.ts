@@ -191,4 +191,51 @@
         this.userInfoSubject.next({ name: 'Usuario', avatar: null });
       }
     }
+
+    // ========================================
+    //  NUEVOS MÉTODOS PARA ROLES
+    // ========================================
+
+    /**
+    * Obtener el rol del usuario actual (ID)
+    */
+    get userRole(): number | null {
+      const user = this.getCurrentUser();
+      return user?.fkrol || null;
+    }
+
+    /**
+     * Obtener el nombre del rol del usuario actual
+     */
+    get userRoleName(): string | null {
+      const user = this.getCurrentUser();
+      return user?.rolNombre || user?.rol?.nombre || null;
+    }
+
+    /**
+     * Verificar si el usuario está autenticado
+     */
+    get isAuthenticated(): boolean {
+      return !!this.getToken() && !!this.getCurrentUser();
+    }
+
+    /**
+     * Verificar si el usuario tiene uno de los roles permitidos
+     * @param rolesPermitidos Array de IDs de roles permitidos
+     * @returns true si el usuario tiene uno de los roles
+     */
+    hasRole(rolesPermitidos: number[]): boolean {
+      const userRole = this.userRole;
+      if (!userRole) return false;
+      return rolesPermitidos.includes(userRole);
+    }
+
+    /**
+     * Verificar si el usuario tiene un rol específico
+     * @param rolId ID del rol a verificar
+     * @returns true si el usuario tiene ese rol
+     */
+    hasSpecificRole(rolId: number): boolean {
+      return this.userRole === rolId;
+    }
   }

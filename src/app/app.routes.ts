@@ -1,6 +1,8 @@
+// src/app/app.routes.ts
 import type { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { cambioClaveGuard } from './guards/cambioClave.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -11,7 +13,7 @@ export const routes: Routes = [
   {
   path: 'cambiar-clave-temporal',
   loadComponent: () => import('./components/cambiar-clave-temporal/cambiar-clave-temporal.component').then(m => m.CambiarClaveTemporalComponent),
-  canActivate: [cambioClaveGuard] // Solo accesible si debe cambiar contraseña
+  canActivate: [cambioClaveGuard] 
   },
   {
     path: 'bienvenida',
@@ -28,71 +30,83 @@ export const routes: Routes = [
   { 
     path: 'usuario', 
     loadComponent: () => import('./components/usuario/usuario.component').then(c => c.UsuarioComponent), 
-    canActivate: [authGuard] 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5,6] } //administración, sistemas
   },
   {
     path: 'pacientes',
     loadComponent: () =>
       import('./components/paciente/paciente-list.component').then(m => m.PacienteListaComponent), 
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas,fisioterapeuta
   },
   {
     path: 'expedientes',
     loadComponent: () =>
       import('./components/expediente/expediente').then(m => m.ExpedienteListaComponent), 
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
   },
   {
     path: 'historial/:id',
     loadComponent: () =>
       import('./components/historialMedico/historialMedico').then(m => m.HistorialMedicoComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
   },
- { 
-  path: 'agenda', 
-  loadComponent: () => import('./components/agenda/agenda.component').then(m => m.AgendaComponent),
-  canActivate: [authGuard]
-},
-{ 
+  { 
+    path: 'agenda', 
+    loadComponent: () => import('./components/agenda/agenda.component').then(m => m.AgendaComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
+  },
+  { 
      path: 'perfil', 
      loadComponent: () => import('./components/perfil/perfil.component').then(m => m.PerfilComponent),
-     canActivate: [authGuard]
+     canActivate: [authGuard, roleGuard],
+     data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
    },
   {
     path: 'administracion',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] } //administración, sistemas
   },
   {
     path: 'educacion-inclusiva',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] } //administración, sistemas
   },
   {
     path: 'fisioterapia',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5,6] } //administración, sistemas, fisioterapeuta
   },
   {
     path: 'medicina-general',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,5] } //administracion, medico-general, sistemas
   },
   {
     path: 'nutricion',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] } //administración, sistemas
   },
   {
     path: 'psicologia',
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] } //administración, sistemas
   },
 
   {
