@@ -1,64 +1,66 @@
 <!-- sidebar.component.html -->
-<div class="sidebar-container" [class.expanded]="isExpanded" [class.collapsed]="!isExpanded">
-  <div class="sidebar-header">
-    <div class="user-info" *ngIf="isExpanded">
-      <div class="user-avatar">
-        <img *ngIf="userInfo.avatar" [src]="userInfo.avatar" [alt]="userInfo.name">
-        <i *ngIf="!userInfo.avatar" class="fas fa-user-circle"></i>
-      </div>
-      <div class="user-name" (click)="onUserNameClick()" style="cursor: pointer;">{{ userInfo.name }}</div>
+<nav class="navbar-horizontal" [class.mobile-open]="mobileMenuOpen">
+  
+  <!-- Usuario (Izquierda) -->
+  <div class="navbar-user">
+    <div class="user-avatar">
+      <img *ngIf="userInfo.avatar" [src]="userInfo.avatar" [alt]="userInfo.name">
+      <i *ngIf="!userInfo.avatar" class="fas fa-user-circle"></i>
     </div>
-
-    <button class="toggle-button" (click)="onToggleSidebar()">
-      <i class="fas fa-bars"></i>
-    </button>
+    <span class="user-name" (click)="onUserNameClick()">{{ userInfo.name }}</span>
   </div>
 
-  <div class="sidebar-divider" *ngIf="isExpanded"></div>
+  <!-- Toggle para móvil -->
+  <button class="navbar-toggle" (click)="toggleMobileMenu()">
+    <i class="fas fa-bars"></i>
+  </button>
 
-  <nav class="sidebar-nav">
-    <ul class="nav-list">
-      <li class="nav-item" *ngFor="let item of currentMenuItems">
-          <ng-container *appHasRole="item.roles || []">
+  <!-- Menús principales (Desktop) -->
+  <div class="navbar-menu" [class.show]="mobileMenuOpen">
+    <div class="menu-items">
+      <div class="menu-item" 
+           *ngFor="let item of currentMenuItems"
+           [class.active]="item.expanded">
+        
+        <ng-container *appHasRole="item.roles || []">
           
-          <!-- Item principal -->
-          <div class="nav-link"
-               [class.has-children]="item.children?.length"
-               [class.expanded]="item.expanded"
-               (click)="onMenuItemClick(item)">
-            <div class="nav-link-content">
-              <i *ngIf="item.icon" [class]="item.icon" class="nav-icon"></i>
-              <span class="nav-label" *ngIf="isExpanded">{{ item.label }}</span>
-            </div>
-            <i *ngIf="item.children?.length && isExpanded" 
-               class="fas fa-chevron-down expand-icon"
+          <!-- Botón principal del menú - CAMBIO AQUÍ -->
+          <button class="menu-button" 
+                  (click)="onMenuItemClick(item, $event)"
+                  [attr.data-label]="item.label">
+            <i *ngIf="item.icon" [class]="item.icon" class="menu-icon"></i>
+            <span class="menu-label">{{ item.label }}</span>
+            <i *ngIf="item.children?.length" 
+               class="fas fa-chevron-down dropdown-arrow"
                [class.rotated]="item.expanded"></i>
-          </div>
+          </button>
 
-          <!-- Submenú -->
-          <ul class="submenu"
-              *ngIf="item.children?.length && item.expanded && isExpanded">
-            
-            <li class="submenu-item" *ngFor="let subItem of item.children">
-              
+          <!-- Dropdown (submenú) -->
+          <div class="dropdown-menu" *ngIf="item.children?.length && item.expanded">
+            <div class="dropdown-arrow-up"></div>
+            <div class="dropdown-item" *ngFor="let subItem of item.children">
               <ng-container *appHasRole="subItem.roles || []">
-                <div class="submenu-link" (click)="onSubMenuItemClick(subItem)">
-                  <i *ngIf="subItem.icon" [class]="subItem.icon" class="submenu-icon"></i>
-                  <span class="submenu-label">{{ subItem.label }}</span>
-                </div>
+                <!-- CAMBIO AQUÍ TAMBIÉN -->
+                <button class="dropdown-link" (click)="onSubMenuItemClick(subItem, $event)">
+                  <span class="dropdown-dot"></span>
+                  <span class="dropdown-label">{{ subItem.label }}</span>
+                </button>
               </ng-container>
-              
-            </li>
-          </ul>
+            </div>
+          </div>
           
         </ng-container>
-      </li>
-    </ul>
-  </nav>
+      </div>
+    </div>
 
-  <div class="sidebar-footer" *ngIf="isExpanded">
-    <p class="footer-text">{{ footerText }}</p>
+    <!-- Copyright (Derecha) -->
+    <div class="navbar-footer">
+      <p class="footer-text">{{ footerText }}</p>
+    </div>
   </div>
-</div>
 
-<div class="sidebar-overlay" *ngIf="isExpanded" (click)="onToggleSidebar()"></div>
+  <!-- Overlay móvil -->
+  <div class="navbar-overlay" 
+       *ngIf="mobileMenuOpen" 
+       (click)="toggleMobileMenu()"></div>
+</nav>

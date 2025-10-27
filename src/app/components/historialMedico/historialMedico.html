@@ -1,104 +1,107 @@
 <!-- historialMedico.html - TEMPLATE ACTUALIZADO -->
 <div class="content-area" [class.sidebar-expanded]="sidebarExpanded">
   <app-sidebar [userInfo]="userInfo"></app-sidebar>
-  
-  <div class="menu-container">
-    <header class="header">
-      <div class="header-content">
-        <div class="header-left">
-          <div class="header-text">
-            <h1 class="title">Historial Clínico</h1>
-          </div>
-          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes" class="logo">
+  <div class="main-content">
+    <header class="page-header">
+      <h1>
+        <div class="logo">
+          <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes">
         </div>
+        Historial Clínico
+      </h1>
+      
+      <div class="date-info">
+        Fecha: {{ currentDate | date:'dd/MM/yy' }}
       </div>
     </header>
+
+    <div class="main-container" *ngIf="currentView === 'historial'">
+      <div class="controls-section">
+        <div class="search-controls">
+          <div class="search-container">
+            <div class="patient-info-card" *ngIf="infoPaciente">
+              <div class="patient-card-header">                
+                <div class="patient-basic-info">
+                  <h2>{{ infoPaciente.nombres }} {{ infoPaciente.apellidos }}</h2>
+                  <p class="expediente-number" *ngIf="infoPaciente.expedientes && infoPaciente.expedientes.length > 0">
+                    Expediente N°. {{ infoPaciente.expedientes[0].numeroexpediente }}
+                  </p>
+                  <p class="patient-age" *ngIf="infoPaciente.fechanacimiento">
+                    Edad: {{ historialService.calcularEdad(infoPaciente.fechanacimiento) }} años
+                  </p>
+                </div>
+                <button class="btn-back" (click)="volver()">
+                  <i class="fas fa-arrow-left"></i> Volver
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="main-card" *ngIf="currentView === 'historial'">
+          <div class="historial-header">
+            <h3>Historial de Sesiones</h3>
+            <div class="header-buttons">
+              <button class="btn-notas-rapidas" (click)="mostrarNotasRapidas()">
+                <i class="fas fa-sticky-note"></i> Notas Rápidas
+              </button>
+              <button class="btn-nueva-sesion" (click)="mostrarNuevaSesion()">
+                <i class="fas fa-plus"></i> Nueva Sesión
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="loading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            Cargando historial...
+          </div>
+
+          <div class="sesiones-grid" *ngIf="!loading">
+            <div 
+              class="sesion-card" 
+              *ngFor="let sesion of historialSesiones"
+              (click)="mostrarDiagnostico(sesion)"
+            >
+              <div class="sesion-fecha">
+                {{ formatearFecha(sesion.fecha) }}
+              </div>
+              <div class="sesion-content">
+                <h4>Control y registro de sesiones</h4>
+                <p class="sesion-motivo">{{ sesion.motivoconsulta | slice:0:100 }}...</p>
+                <div class="sesion-doctor" *ngIf="sesion.usuario">
+                  Dr. {{ sesion.usuario.nombres }} {{ sesion.usuario.apellidos }}
+                </div>
+              </div>
+              <div class="sesion-status">
+                <span class="status-diagnostico" [class.completado]="sesion.diagnosticotratamiento">
+                  Diagnóstico
+                </span>
+                <button 
+                  class="btn-eliminar" 
+                  (click)="eliminarSesion(sesion); $event.stopPropagation()"
+                  title="Eliminar sesión"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="historialSesiones.length === 0" class="empty-state">
+              <p>No hay sesiones registradas para este paciente</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ✅ INFORMACIÓN DEL PACIENTE CON FOTO -->
-  <div class="patient-info-card" *ngIf="infoPaciente">
-    <div class="patient-card-header">
-      <!-- ✅ CAMBIO: Avatar con foto del paciente -->
-      <div class="patient-avatar">
-        <div class="avatar-circle">
-          <img 
-            *ngIf="fotoPacienteUrl" 
-            [src]="fotoPacienteUrl" 
-            [alt]="infoPaciente.nombres + ' ' + infoPaciente.apellidos"
-            class="patient-photo"
-          >
-          <i *ngIf="!fotoPacienteUrl" class="fas fa-user"></i>
-        </div>
-      </div>
-      <div class="patient-basic-info">
-        <h2>{{ infoPaciente.nombres }} {{ infoPaciente.apellidos }}</h2>
-        <p class="expediente-number" *ngIf="infoPaciente.expedientes && infoPaciente.expedientes.length > 0">
-          Expediente N°. {{ infoPaciente.expedientes[0].numeroexpediente }}
-        </p>
-        <p class="patient-age" *ngIf="infoPaciente.fechanacimiento">
-          Edad: {{ historialService.calcularEdad(infoPaciente.fechanacimiento) }} años
-        </p>
-      </div>
-      <button class="btn-back" (click)="volver()">
-        <i class="fas fa-arrow-left"></i> Volver
-      </button>
-    </div>
-  </div>
+  
 
   <!-- VISTA HISTORIAL -->
-  <div class="main-card" *ngIf="currentView === 'historial'">
-    <div class="historial-header">
-      <h3>Historial de Sesiones</h3>
-      <div class="header-buttons">
-        <button class="btn-notas-rapidas" (click)="mostrarNotasRapidas()">
-          <i class="fas fa-sticky-note"></i> Notas Rápidas
-        </button>
-        <button class="btn-nueva-sesion" (click)="mostrarNuevaSesion()">
-          <i class="fas fa-plus"></i> Nueva Sesión
-        </button>
-      </div>
-    </div>
-
-    <div *ngIf="loading" class="loading-state">
-      <i class="fas fa-spinner fa-spin"></i>
-      Cargando historial...
-    </div>
-
-    <div class="sesiones-grid" *ngIf="!loading">
-      <div 
-        class="sesion-card" 
-        *ngFor="let sesion of historialSesiones"
-        (click)="mostrarDiagnostico(sesion)"
-      >
-        <div class="sesion-fecha">
-          {{ formatearFecha(sesion.fecha) }}
-        </div>
-        <div class="sesion-content">
-          <h4>Control y registro de sesiones</h4>
-          <p class="sesion-motivo">{{ sesion.motivoconsulta | slice:0:100 }}...</p>
-          <div class="sesion-doctor" *ngIf="sesion.usuario">
-            Dr. {{ sesion.usuario.nombres }} {{ sesion.usuario.apellidos }}
-          </div>
-        </div>
-        <div class="sesion-status">
-          <span class="status-diagnostico" [class.completado]="sesion.diagnosticotratamiento">
-            Diagnóstico
-          </span>
-          <button 
-            class="btn-eliminar" 
-            (click)="eliminarSesion(sesion); $event.stopPropagation()"
-            title="Eliminar sesión"
-          >
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-
-      <div *ngIf="historialSesiones.length === 0" class="empty-state">
-        <p>No hay sesiones registradas para este paciente</p>
-      </div>
-    </div>
-  </div>
+  
 
   <!-- VISTA NOTAS RÁPIDAS -->
   <div class="main-card" *ngIf="currentView === 'notas-rapidas'">
@@ -165,7 +168,7 @@
 
   <!-- ✅ MODAL NUEVA SESIÓN CON ARCHIVOS MEJORADO -->
   <div class="modal-backdrop" *ngIf="currentView === 'nueva-sesion'" (click)="mostrarHistorial()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-content-large" (click)="$event.stopPropagation()">
       
       <div class="modal-header">
         <h3>Control y Registro de sesiones</h3>
@@ -174,7 +177,7 @@
         </button>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body-scroll">
         <div class="session-date">
           <strong>Sesión de hoy {{ currentDate | date:'dd/MM/yyyy' }}</strong>
         </div>

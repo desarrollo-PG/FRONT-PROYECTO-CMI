@@ -224,15 +224,77 @@ export class AgendaComponent implements OnInit, AfterViewInit {
   }
 
   cargarUsuariosPorRol(): void {
-    this.UsuarioService.obtenerUsuariosPorRol(2).subscribe({
-      next: (usuariosPorRol) => {
-        this.usuario = usuariosPorRol;
-      },
-      error: (error) => {
-        console.error('Error al cargar los usuarios por roles: ', error);
-        this.alerta.alertaError('Error al cargar los usuarios por roles');
-      }
-    });
+    const usuarioData = localStorage.getItem('usuario');
+
+    if (!usuarioData) {
+      console.error('No hay datos de usuario en localStorage');
+      return;
+    }
+
+    const usuario = JSON.parse(usuarioData);
+    const usuarioRol = usuario.fkrol;
+
+    if(usuarioRol == 2 || usuarioRol == 6 || usuarioRol == 7 || usuarioRol == 12 || usuarioRol == 13 || usuarioRol == 15){
+      const currentUserId = this.getCurrentUserId();
+      this.selectedMedico = currentUserId;
+
+      // Cargar todos los usuarios por rol primero
+      this.UsuarioService.obtenerUsuariosPorRol('2,6,7,12,13,15').subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.usuario = response.data;
+            
+            // Asegurar que el usuario actual esté seleccionado
+            // Si no está en la lista, lo agregamos al inicio
+            const usuarioActualEnLista = this.usuario.find(u => u.idusuario == parseInt(currentUserId));
+            
+            if (!usuarioActualEnLista) {
+              // Si el usuario actual no está en la lista, lo buscamos y agregamos
+              this.UsuarioService.obtenerUsuarioPorId(parseInt(currentUserId)).subscribe({
+                next: (responseUsuario) => {
+                  if (responseUsuario.success && responseUsuario.data) {
+                    this.usuario.unshift(responseUsuario.data); // Agregar al inicio
+                    this.filtrarPorMedico();
+                  }
+                },
+                error: (error) => {
+                  if(error.status !== 403){
+                    this.alerta.alertaError('Error al cargar el usuario actual');
+                  }
+                }
+              });
+            } else {
+              this.filtrarPorMedico();
+            }
+          } else {
+            this.usuario = [];
+            this.alerta.alertaInfo(response.message || 'No se encontraron usuarios');
+          }
+        },
+        error: (error) => {
+          if (error.status !== 403) {
+            this.alerta.alertaError('Error al cargar los usuarios por roles');
+          }
+        }
+      });
+    } else {
+      // Usuario con otro rol - mostrar todos los profesionales
+      this.UsuarioService.obtenerUsuariosPorRol('2,6,7,12,13,15').subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.usuario = response.data;
+          } else {
+            this.usuario = [];
+            this.alerta.alertaInfo(response.message || 'No se encontraron usuarios');
+          }
+        },
+        error: (error) => {
+          if (error.status !== 403) {
+            this.alerta.alertaError('Error al cargar los usuarios por roles');
+          }
+        }
+      });
+    }
   }
 
   ListarPacientes(): void {

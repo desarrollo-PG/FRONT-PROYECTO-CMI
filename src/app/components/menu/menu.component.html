@@ -4,9 +4,7 @@
   <!-- ✅ ACTUALIZAR: Agregar los eventos al sidebar -->
   <app-sidebar 
     [userInfo]="userInfo"
-    [isExpanded]="sidebarVisible"
-    (toggleSidebar)="onSidebarToggle($event)"
-    (menuItemClick)="onSidebarMenuItemClick($event)">
+    [footerText]="footerText">
   </app-sidebar>
   
   <!-- Contenido del menú -->

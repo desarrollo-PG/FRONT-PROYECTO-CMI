@@ -79,24 +79,28 @@
                           
               <!-- BOTÓN EDITAR -->
               <td>
-                <button 
-                  class="boton-accion boton-editar" 
-                  (click)="editarExpediente(expediente)"
-                  title="Editar"
-                >
-                Editar
-                </button>
+                <div class="action-buttons">
+                  <button 
+                    class="action-btn edit-btn" 
+                    (click)="editarExpediente(expediente)"
+                    title="Editar"
+                  >
+                  Editar
+                  </button>
+                </div>
               </td>
               
               <!-- BOTÓN ELIMINAR -->
               <td>
-                <button 
-                  class="boton-accion boton-eliminar" 
-                  (click)="eliminarExpediente(expediente.idexpediente!)"
-                  title="Eliminar"
-                >
-                  Eliminar
-                </button>
+                <div class="action-buttons">
+                  <button 
+                    class="action-btn delete-btn" 
+                    (click)="eliminarExpediente(expediente.idexpediente!)"
+                    title="Eliminar"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -234,19 +238,19 @@
   </div> -->
 
   <!-- Modal de formulario -->
-  <div class="fondo-modal" *ngIf="vistaActual === 'formulario'" (click)="cerrarModalInterno()">
-    <div class="contenido-modal-grande" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="vistaActual === 'formulario'" (click)="cerrarModalInterno()">
+    <div class="modal-content-large" (click)="$event.stopPropagation()">
       
       <!-- Encabezado del modal -->
-      <div class="encabezado-modal">
+      <div class="modal-header">
         <h3>{{ modoEdicion ? 'Editar Expediente Médico' : 'Nuevo Expediente Médico' }}</h3>
-        <button class="cerrar-modal" (click)="cerrarModalInterno()">
+        <button class="modal-close" (click)="cerrarModalInterno()">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
       <!-- Cuerpo del modal con scroll -->
-      <div class="cuerpo-modal-scroll">
+      <div class="modal-body-scroll">
         
         <form [formGroup]="formularioExpediente" class="formulario-expediente">
           
@@ -670,7 +674,7 @@
       </div>
 
       <!-- Pie del modal fijo -->
-      <div class="pie-modal">
+      <div class="modal-footer">
         <button type="button" class="boton-cancelar" (click)="cerrarModalInterno()">
           <i class="fas fa-times"></i> Cancelar
         </button>
@@ -691,6 +695,8 @@
 
     </div>
   </div>
+
+  
 
 <!-- Vista de detalles - MODAL COMPLETO -->
 <div class="fondo-modal" *ngIf="vistaActual === 'detalle'" (click)="mostrarLista()">

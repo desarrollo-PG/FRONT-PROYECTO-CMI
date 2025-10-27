@@ -240,7 +240,8 @@
     // Cuando el sidebar está expandido
     &.sidebar-expanded {
       .main-content {
-        margin-left: 250px; // Ancho del sidebar expandido
+        padding-top: 60px;
+        //margin-left: 250px; // Ancho del sidebar expandido
         width: calc(100% - 250px);
       }
     }
@@ -248,7 +249,7 @@
     // Cuando el sidebar está colapsado
     &:not(.sidebar-expanded) {
       .main-content {
-        margin-left: 70px; // Ancho del sidebar colapsado
+        //margin-left: 70px; // Ancho del sidebar colapsado
         width: calc(100% - 70px);
       }
     }

@@ -49,8 +49,7 @@ interface FormattedNotification {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GestionClinicaComponent implements OnInit, OnDestroy, AfterViewInit {
-  
-  // Servicios inyectados
+  currentView: 'list' | 'form' | 'detail' = 'list';
   private readonly gestionService = inject(GestionClinicaService);
   public readonly router = inject(Router); // Cambiar a public para acceso en template
   private readonly route = inject(ActivatedRoute);

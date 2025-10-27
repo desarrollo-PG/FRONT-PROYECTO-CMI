@@ -81,7 +81,7 @@
           this.cambiarClaveSubject.next(true);
           this.router.navigate(['/cambiar-clave-temporal']);
         } else {
-          this.router.navigate(['/usuario']);
+          this.router.navigate(['/fisioterapia']);
         }
       }
     }

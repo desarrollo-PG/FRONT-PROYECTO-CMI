@@ -41,6 +41,8 @@ export class MenuComponent implements OnInit, OnDestroy, AfterViewInit {
   hoveredItem: MenuItem | null = null;
   tooltipPosition = { x: 0, y: 0 };
 
+  footerText = '© 2025 CMI - Clínicas Municipales Inclusivas. Todos los derechos reservados.';
+
   constructor(
     private authService: AuthService,
     private archivoService: ArchivoService,

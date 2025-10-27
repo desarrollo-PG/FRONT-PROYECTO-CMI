@@ -1,3 +1,24 @@
+
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/modal';
+
+// ================================================
+// ESTILOS PRINCIPALES DEL COMPONENTE 
+// ================================================
+
+:host {
+  display: block;
+  
+  @include data-table-module;
+}
+
+.main-content {
+  padding-top: 60px;
+  width: 100%;
+  min-height: 100vh;
+}
+
 /* gestionclinica.component.scss - Versión simplificada */
 
 /* Variables principales */
@@ -8,58 +29,6 @@ $gray-medium: #6c757d;
 $gray-dark: #343a40;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 $border-radius: 15px;
-
-/* Layout principal */
-.content-area {
-  padding: 20px;
-  margin-left: 70px;
-  width: calc(100vw - 70px);
-  transition: all 0.3s ease;
-
-  &.sidebar-expanded {
-    margin-left: 280px;
-    width: calc(100vw - 280px);
-  }
-}
-
-/* Header */
-.encabezado {
-  background: linear-gradient(135deg, $primary-color 0%);
-  color: $white;
-  padding: 25px 30px;
-  border-radius: $border-radius $border-radius 0 0;
-  position: relative;
-  box-shadow: $shadow;
-
-  .titulo {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0;
-    color: $white;
-  }
-
-  .logo {
-    position: absolute;
-    top: 50%;
-    right: 30px;
-    transform: translateY(-50%);
-    height: 65px;
-    z-index: 10;
-  }
-
-  @media (max-width: 768px) {
-    padding: 20px;
-    
-    .titulo {
-      font-size: 24px;
-    }
-    
-    .logo {
-      height: 50px;
-      right: 20px;
-    }
-  }
-}
 
 /* Tarjeta de control */
 .tarjeta-control {
@@ -175,20 +144,6 @@ $border-radius: 15px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }
-}
-
-/* Contenedor principal */
-.main-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba($white, 0.95);
-  border-radius: 20px;
-  box-shadow: $shadow;
-  overflow: hidden;
-
-  @media (max-width: 768px) {
-    margin: 0 10px;
   }
 }
 

@@ -95,7 +95,8 @@ onEscapeKey(event: KeyboardEvent): void {
   fotoEncargadoSeleccionada: string | null = null;
   cartaSeleccionada: string | null = null;
   esCartaPDF = false;
-  
+  isEditMode = false;
+  isViewMode = false;
 
   modalAccionesAbierto = false;
   pacienteSeleccionadoAcciones: Paciente | null = null;
@@ -710,17 +711,25 @@ private async subirTodosLosArchivos(pacienteId: number): Promise<{ rutaFotoPacie
 
   // RESTO DE MÉTODOS SIN CAMBIOS (solo los esenciales para que funcione)
   
-  eliminarPaciente(id: number): void {
+  eliminarPaciente(paciente: Paciente): void {
+    // Validar que el paciente tenga ID
+    if (!paciente?.idpaciente) {
+      this.servicioAlerta.alertaError('El paciente no tiene un ID válido');
+      return;
+    }
+
     this.servicioAlerta.alertaConfirmacion(
       '¿Eliminar paciente?',
       'Esta acción no se puede deshacer.',
       'Sí, eliminar',
       'Cancelar'
     ).then((confirmado: boolean) => {
-      if (confirmado) {
+      if (confirmado && paciente.idpaciente) { // ← Validar de nuevo aquí
         this.cargando = true;
         
-        this.servicioUsuario.eliminarPaciente(id).subscribe({
+        const idPaciente = paciente.idpaciente; // ← Guardar en una constante
+        
+        this.servicioUsuario.eliminarPaciente(idPaciente).subscribe({
           next: (respuesta) => {
             if (respuesta.exito) {
               this.servicioAlerta.alertaExito('Paciente eliminado');
@@ -937,12 +946,12 @@ private async subirTodosLosArchivos(pacienteId: number): Promise<{ rutaFotoPacie
     this.editarPaciente(paciente);
   }
 
-  eliminarPacienteDesdeModal(paciente: Paciente): void {
-    this.cerrarModalAcciones();
-    if (paciente.idpaciente) {
-      this.eliminarPaciente(paciente.idpaciente);
-    }
-  }
+  // eliminarPacienteDesdeModal(paciente: Paciente): void {
+  //   this.cerrarModalAcciones();
+  //   if (paciente.idpaciente) {
+  //     this.eliminarPaciente(paciente.idpaciente);
+  //   }
+  // }
 
 /**
  * Maneja la navegación al historial clínico desde el modal
@@ -953,26 +962,37 @@ verHistorialClinicoDesdeModal(paciente: Paciente): void {
 }
 
   // Navega al historial clínico de un paciente específico
-  verHistorialClinico(paciente: Paciente): void {
-    if (!paciente.idpaciente) {
-      this.servicioAlerta.alertaPreventiva('No se puede acceder al historial: ID de paciente no válido');
-      return;
-    }
+  // verHistorialClinico(paciente: Paciente): void {
+  //   if (!paciente.idpaciente) {
+  //     this.servicioAlerta.alertaPreventiva('No se puede acceder al historial: ID de paciente no válido');
+  //     return;
+  //   }
     
-    // Verificar si el paciente tiene al menos un expediente
-    const informacionExpediente = this.obtenerInformacionExpedientePaciente(paciente);
+  //   // Verificar si el paciente tiene al menos un expediente
+  //   const informacionExpediente = this.obtenerInformacionExpedientePaciente(paciente);
     
-    if (!informacionExpediente.tieneExpediente) {
-      // ✅ IR DIRECTO A CREAR EXPEDIENTE (sin diálogo previo)
-      this.crearExpedientePaciente(paciente);
-      return;
-    }
+  //   if (!informacionExpediente.tieneExpediente) {
+  //     // ✅ IR DIRECTO A CREAR EXPEDIENTE (sin diálogo previo)
+  //     this.crearExpedientePaciente(paciente);
+  //     return;
+  //   }
 
-    // Guardar datos del paciente
-    sessionStorage.setItem('datosPacienteHistorial', JSON.stringify(paciente));
+  //   // Guardar datos del paciente
+  //   sessionStorage.setItem('datosPacienteHistorial', JSON.stringify(paciente));
     
-    // Navegar al historial clínico
-    this.router.navigate(['/historial', paciente.idpaciente]);
+  //   // Navegar al historial clínico
+  //   this.router.navigate(['/historial', paciente.idpaciente]);
+  // }
+
+  verHistorialClinico(paciente: Paciente): void {
+    if (paciente.idpaciente) {
+      this.router.navigate(['/historial', paciente.idpaciente]);
+    }
+  }
+
+  verDetallePaciente(paciente: Paciente): void {
+    this.pacienteSeleccionado = paciente;
+    this.vistaActual = 'detalle';
   }
 
  //Crear expediente para un paciente específico

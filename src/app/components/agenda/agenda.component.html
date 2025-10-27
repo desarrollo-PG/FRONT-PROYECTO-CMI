@@ -18,11 +18,18 @@
     <div class="main-container" *ngIf="currentView === 'list'">
       <div class="controls-section">
         <div class="search-controls">
-          <button 
+          <!-- <button 
             class="add-btn"
             (click)="abrirModalNuevaCita()"
             title="Nueva Cita">
             Nueva Cita
+          </button> -->
+          <button
+            class="add-btn"
+            (click)="abrirModalReporte()"
+            title="Reporte de Transportes">
+            <i class="fas fa-bus me-2"></i>
+            Reporte Transporte
           </button>
           <div class="agenda-controls">
             <select 
@@ -36,13 +43,6 @@
               </option>
             </select>
           </div>
-          <button
-            class="add-btn"
-            (click)="abrirModalReporte()"
-            title="Reporte de Transportes">
-            <i class="fas fa-bus me-2"></i>
-            Reporte
-          </button>
         </div>
       </div>
       <div class="table-container">

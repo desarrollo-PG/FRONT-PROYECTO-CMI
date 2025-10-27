@@ -1,5 +1,5 @@
 // sidebar.component.ts
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,48 +22,48 @@ export interface MenuItem {
   imports: [CommonModule, HasRoleDirective],
 })
 export class SidebarComponent {
-  @Input() isExpanded: boolean = true;
   @Input() userInfo: { name: string; avatar?: string } = { name: 'Usuario' };
   @Input() menuItems: MenuItem[] = [];
-  @Input() footerText: string = '© 2025 CMI - Clinicas Municipales Inclusivas. Todos los derechos reservados.';
+  @Input() footerText: string = '';
 
-  @Output() toggleSidebar = new EventEmitter<boolean>();
   @Output() menuItemClick = new EventEmitter<MenuItem>();
+
+  mobileMenuOpen: boolean = false;
 
   defaultMenuItems: MenuItem[] = [
     {
       label: 'Gestión de usuarios',
       icon: 'fas fa-users',
-      roles: [1,2,5,6],
+      roles: [1, 5],
       children: [
-        { label: 'Usuarios', route: '/usuario', roles: [1,2,5,6] } ,
-        { label: 'Perfiles', route: '/perfil', roles: [] } 
+        { label: 'Usuarios', route: '/usuario', roles: [1, 5] },
+        { label: 'Perfiles', route: '/perfil', roles: [] }
       ]
     },
     {
       label: 'Gestión de Pacientes',
       icon: 'fas fa-hospital-user',
-      roles: [1,2,5,6],
+      roles: [1, 2, 5, 6],
       children: [
-        { label: 'Pacientes', route: '/pacientes', roles: [1,2,5,6] },
-        { label: 'Expedientes', route: '/expedientes', roles: [1,2,5,6] },
-        { label: 'Referidos', route: '/referidos', roles: [1,2,6] },
-        { label: 'Inventario', route: '/inventario', roles: [1,2,6] }
-    ]
-  },
+        { label: 'Pacientes', route: '/pacientes', roles: [1, 2, 5, 6, 14] },
+        { label: 'Expedientes', route: '/expedientes', roles: [1, 5, 6] },
+        { label: 'Referidos', route: '/referidos', roles: [] }
+        // { label: 'Inventario', route: '/inventario', roles: [] }
+      ]
+    },
     {
       label: 'Gestión Clinica',
       icon: 'fas fa-hospital',
-      roles: [1,2,5,6],
+      roles: [1, 2, 5, 6],
       children: [
-        { label: 'Agenda', route: '/agenda', roles: [1,2,5,6] },
-        { label: 'Reporteria', route: '/reporteria', roles: [] },
-        { label: 'Administración', route: '/administracion', roles: [] },
-        { label: 'Educación Inclusiva', route: '/educacion-inclusiva', roles: [] },
-        { label: 'Fisioterapia', route: '/fisioterapia', roles: [] },
-        { label: 'Medicina General', route: '/medicina-general', roles: [] },
-        { label: 'Nutrición', route: '/nutricion', roles: [] },
-        { label: 'Psicología', route: '/psicologia', roles: [] }
+        { label: 'Agenda', route: '/agenda', roles: [1, 2, 5, 6] }
+        // { label: 'Reporteria', route: '/reporteria', roles: [] },
+        // { label: 'Administración', route: '/administracion', roles: [] },
+        // { label: 'Educación Inclusiva', route: '/educacion-inclusiva', roles: [] },
+        // { label: 'Fisioterapia', route: '/fisioterapia', roles: [] },
+        // { label: 'Medicina General', route: '/medicina-general', roles: [] },
+        // { label: 'Nutrición', route: '/nutricion', roles: [] },
+        // { label: 'Psicología', route: '/psicologia', roles: [] }
       ]
     },
     {
@@ -77,43 +77,58 @@ export class SidebarComponent {
       ]
     },
     {
-      label: 'Cerrar Sesion',
+      label: 'Cerrar Sesión',
       icon: 'fas fa-sign-out-alt',
-      roles: [1,2,5,6],
-      children: [
-        { label: 'Cerrar Sesion', route: '/logout/logout', roles: [1,2,5,6] }
-      ]
+      roles: [1, 2, 5, 6],
+      route: '/logout'
     }
   ];
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private authService: AuthService
-  ){}
+  ) {}
 
   get currentMenuItems(): MenuItem[] {
     return this.menuItems.length > 0 ? this.menuItems : this.defaultMenuItems;
   }
 
-  onToggleSidebar() {
-    this.isExpanded = !this.isExpanded;
-    this.toggleSidebar.emit(this.isExpanded);
-  }
+  onMenuItemClick(item: MenuItem, event?: Event) {
+    // Prevenir que el click se propague al document
+    if (event) {
+      event.stopPropagation();
+    }
 
-  onMenuItemClick(item: MenuItem) {
+    // Caso especial: Cerrar Sesión
+    if (item.label === 'Cerrar Sesión' || item.route === '/logout') {
+      this.authService.logout();
+      this.mobileMenuOpen = false;
+      return;
+    }
+
     if (item.children && item.children.length > 0) {
+      // Toggle el menú expandido
       item.expanded = !item.expanded;
+      // Cerrar otros menús
+      this.closeOtherMenus(item);
     } else if (item.route) {
       this.router.navigate([item.route]);
+      this.mobileMenuOpen = false;
+      this.closeAllMenus();
     }
     this.menuItemClick.emit(item);
   }
 
-    onSubMenuItemClick(item: MenuItem) {
-    if (item.label === 'Cerrar Sesion') {
-      this.authService.logout(); 
-    } else if (item.route) {
+  onSubMenuItemClick(item: MenuItem, event?: Event) {
+    // Prevenir que el click se propague
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (item.route) {
       this.router.navigate([item.route]);
+      this.closeAllMenus();
+      this.mobileMenuOpen = false;
       this.menuItemClick.emit(item);
     } else {
       this.menuItemClick.emit(item);
@@ -121,8 +136,34 @@ export class SidebarComponent {
   }
 
   onUserNameClick() {
-    this.router.navigate(['/menu']);
+    this.router.navigate(['/fisioterapia']);
   }
 
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
 
+  closeOtherMenus(currentItem: MenuItem) {
+    this.currentMenuItems.forEach(item => {
+      if (item !== currentItem) {
+        item.expanded = false;
+      }
+    });
+  }
+
+  closeAllMenus() {
+    this.currentMenuItems.forEach(item => {
+      item.expanded = false;
+    });
+  }
+
+  // Cerrar dropdowns al hacer click fuera
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Solo cerrar si el click NO fue en un menú o dropdown
+    if (!target.closest('.navbar-horizontal')) {
+      this.closeAllMenus();
+    }
+  }
 }

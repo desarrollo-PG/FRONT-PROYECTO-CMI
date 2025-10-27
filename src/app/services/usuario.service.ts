@@ -26,11 +26,24 @@ export interface Usuario {
     usuariocreacion:          string;
     usuariomodificacion?:     string;
     estado:                   number;
+    fkclinica:                number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errors?: any[];
 }
 
 export interface Rol {
   idrol: number;
   nombre: string;
+}
+
+export interface Clinica{
+    idclinica:     number;
+    nombreclinica: string;
 }
 
 @Injectable({
@@ -79,9 +92,10 @@ export class UsuarioService{
         )
     }
 
-    obtenerUsuarioPorId(id: number): Observable<Usuario> {
-        return this.http.get<Usuario>(`${this.apiUrl}/buscarPorId/${id}`).pipe(
+    obtenerUsuarioPorId(id: number): Observable<ApiResponse<Usuario>> {
+        return this.http.get<ApiResponse<Usuario>>(`${this.apiUrl}/buscarPorId/${id}`).pipe(
             tap(response => {
+                console.log('Usuario por ID:', response);
             }),
             catchError(error => {
                 if (error.status === 0) {
@@ -92,19 +106,21 @@ export class UsuarioService{
         );
     }
 
-    obtenerUsuariosPorRol(rol: number): Observable<any>{
+    obtenerUsuariosPorRol(rol: string): Observable<ApiResponse<Usuario[]>> {
         const ruta = `${this.apiUrl}/buscarPorRol/${rol}`;
-        return this.http.get<any>(ruta).pipe(
+        return this.http.get<ApiResponse<Usuario[]>>(ruta).pipe(
             tap(response => {
+                console.log('Usuarios por rol:', response);
             }),
-            map(response =>{
-                if(response && response.success && response.data && Array.isArray(response.data)){
-                    return response.data;
-                }
-                return[];
-            }),
-            catchError(error =>{
-                return of([]);
+            // ✅ REMOVIDO el map que estaba causando el problema
+            catchError(error => {
+                console.error('Error al obtener usuarios por rol:', error);
+                // ✅ Retornar un ApiResponse vacío en lugar de un array vacío
+                return of({
+                    success: false,
+                    data: [],
+                    message: 'Error al obtener usuarios'
+                } as ApiResponse<Usuario[]>);
             })
         );
     }
@@ -157,5 +173,21 @@ export class UsuarioService{
                 throw error;
             })
         );
+    }
+
+    obtenerClinicas(): Observable<Clinica[]>{
+        const ruta = `${this.apiUrl}/clinicas`;
+        return this.http.get<any>(ruta).pipe(
+            tap(response => {}),
+            map(response => {
+                if(response && response.success && response.data && Array.isArray(response.data)){
+                    return response.data;
+                }
+                return[];
+            }),
+            catchError(error => {
+                return of([]);
+            })
+        )
     }
 }

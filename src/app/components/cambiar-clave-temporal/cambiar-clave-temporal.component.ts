@@ -106,7 +106,7 @@ export class CambiarClaveTemporalComponent implements OnInit {
               this.authService.actualizarEstadoCambioClave();
               
               // Navegar a la página principal - ajusta esta ruta según tu aplicación
-              this.router.navigate(['/menu']); // o la ruta que uses: '/home', '/main', '/'
+              this.router.navigate(['/fisioterapia']); // o la ruta que uses: '/home', '/main', '/'
             }, 1500); // Dar tiempo para que el usuario vea el mensaje
             
           } else {

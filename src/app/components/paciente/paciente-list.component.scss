@@ -107,3 +107,102 @@
     grid-template-columns: 1fr;
   }
 }
+
+// ================================================
+// BOTONES DE ACCIÓN EN LA TABLA
+// ================================================
+
+.action-buttons {
+  display: flex;
+  gap: $spacing-2;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  border-radius: $border-radius-md;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition-normal;
+  font-size: $font-size-sm;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  i {
+    font-size: $font-size-sm;
+  }
+  
+  // Botón Ver Historial - Azul
+  &.btn-view {
+    background: #4a90e2;
+    color: white;
+    
+    &:hover {
+      background: #357abd;
+      box-shadow: 0 4px 8px rgba(74, 144, 226, 0.4);
+    }
+  }
+  
+  // Botón Editar - Naranja
+  &.btn-edit {
+    background: #f39c12;
+    color: white;
+    
+    &:hover {
+      background: #d68910;
+      box-shadow: 0 4px 8px rgba(243, 156, 18, 0.4);
+    }
+  }
+  
+  // Botón Ver Detalle - Verde
+  &.btn-info {
+    background: #28a745;
+    color: white;
+    
+    &:hover {
+      background: #218838;
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+    }
+  }
+  
+  // Botón Eliminar - Rojo
+  &.btn-delete {
+    background: #dc3545;
+    color: white;
+    
+    &:hover {
+      background: #c82333;
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+  }
+}
+
+// Responsive
+@include mobile {
+  .action-buttons {
+    gap: $spacing-1;
+  }
+  
+  .btn-action {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+    
+    i {
+      font-size: 0.8rem;
+    }
+  }
+}

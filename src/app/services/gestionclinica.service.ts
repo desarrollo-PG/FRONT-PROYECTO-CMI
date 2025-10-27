@@ -293,82 +293,31 @@ export class GestionClinicaService {
           id: 'pacientes-fisio', 
           name: 'Pacientes', 
           icon: 'fas fa-walking', 
-          route: '/fisioterapia/pacientes', 
+          route: '/pacientes', 
           color: 'patients',
           description: 'Pacientes en rehabilitación',
           isActive: true
         },
         { 
-          id: 'terapias', 
-          name: 'Terapias', 
-          icon: 'fas fa-dumbbell', 
-          route: '/fisioterapia/terapias', 
-          color: 'doctors',
-          description: 'Sesiones de terapia',
-          isActive: true
-        },
-        { 
-          id: 'citas-fisio', 
-          name: 'Citas', 
-          icon: 'fas fa-calendar-check', 
-          route: '/fisioterapia/citas', 
-          color: 'calendar',
-          description: 'Programación de citas',
-          isActive: true
-        },
-        { 
-          id: 'equipos', 
-          name: 'Equipos', 
-          icon: 'fas fa-tools', 
-          route: '/fisioterapia/equipos', 
+          id: 'expedientes', 
+          name: 'Expedientes', 
+          icon: 'fas fa-folder-open', 
+          route: '/expedientes', 
           color: 'exchange',
-          description: 'Equipos de rehabilitación',
+          description: 'Expedientes médicos',
           isActive: true
         },
         { 
-          id: 'ejercicios', 
-          name: 'Ejercicios', 
-          icon: 'fas fa-running', 
-          route: '/fisioterapia/ejercicios', 
+          id: 'agenda', 
+          name: 'Agenda', 
+          icon: 'fas fa-calendar-alt', 
+          route: '/agenda', 
           color: 'reports',
-          description: 'Rutinas de ejercicios',
-          isActive: true
-        },
-        { 
-          id: 'progreso', 
-          name: 'Progreso', 
-          icon: 'fas fa-chart-line', 
-          route: '/fisioterapia/progreso', 
-          color: 'stats',
-          description: 'Seguimiento de progreso',
+          description: 'Calendario de citas',
           isActive: true
         }
       ],
       quickActions: [
-        { 
-          id: 'nueva-sesion', 
-          label: 'Nueva Sesión', 
-          icon: 'fas fa-plus', 
-          action: 'nueva-sesion',
-          route: '/fisioterapia/sesiones/nueva',
-          isVisible: true
-        },
-        { 
-          id: 'evaluar-paciente', 
-          label: 'Evaluar Paciente', 
-          icon: 'fas fa-stethoscope', 
-          action: 'evaluar-paciente',
-          route: '/fisioterapia/evaluaciones',
-          isVisible: true
-        },
-        { 
-          id: 'plan-ejercicios', 
-          label: 'Plan de Ejercicios', 
-          icon: 'fas fa-list-alt', 
-          action: 'plan-ejercicios',
-          route: '/fisioterapia/planes',
-          isVisible: true
-        }
       ],
       notifications: { 
         citas: 0, 
