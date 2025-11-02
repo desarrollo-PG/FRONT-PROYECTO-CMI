@@ -17,13 +17,11 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { AlertaService } from '../../services/alerta.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { Paciente } from '../../services/paciente.service';
-import { ReferidosComponent } from '../referidos/referidos.component';
-
 
 @Component({
   selector: 'app-historial-medico',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SidebarComponent,ReferidosComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SidebarComponent],
   templateUrl: './historialMedico.html',
   styleUrls: ['./historialMedico.scss']
 })
