@@ -442,6 +442,12 @@
 
 .modal-footer {
   @include modal-footer;
+
+  .btn-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
 }
 
 // Info cards en vista de detalles
@@ -631,5 +637,22 @@
 .modal {
   &:nth-of-type(2) {
     z-index: 1052;
+  }
+}
+
+.btn-historial {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 }

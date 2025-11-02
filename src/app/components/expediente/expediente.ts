@@ -1,19 +1,17 @@
 // expediente.ts
-import { Component, OnInit, AfterViewInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { ServicioExpediente, Expediente, RespuestaCreacionExpediente, RespuestaListaExpedientes, EstadisticasExpediente } from '../../services/expediente.service';
+import { ServicioExpediente, Expediente, RespuestaListaExpedientes, EstadisticasExpediente } from '../../services/expediente.service';
 import { AlertaService } from '../../services/alerta.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
-import { NgxPaginationModule } from 'ngx-pagination';
 import { PdfService } from '../../services/pdf.service';
 import { ArchivoService } from '../../services/archivo.service';
-
-
+import { Paciente, ServicioPaciente } from '../../services/paciente.service';
 
 @Component({
   selector: 'app-expediente-lista',
@@ -48,7 +46,7 @@ export class ExpedienteListaComponent implements OnInit, AfterViewInit, OnDestro
   totalPages = 0;
   totalItems = 0;
   paginatedExpedientes: Expediente[] = [];
-  
+  isViewMode = false;
 
   // Exponer Math para usar en el template
   Math = Math;
@@ -69,13 +67,22 @@ export class ExpedienteListaComponent implements OnInit, AfterViewInit, OnDestro
   barraLateralExpandida = true;
   informacionUsuario: any = { name: 'Usuario', avatar: null };
   error = '';
+  busquedaPaciente = '';
+  mostrarListaPacientes = false;
+  pacientes: Paciente[] = [];
+  pacientesFiltrados: Paciente[] = [];
+  pacienteSeleccionado: Paciente | null = null;
+  pacienteSeleccionadoTexto = '';
+  cargandoPacientes = false;
 
   constructor(
     private servicioExpediente: ServicioExpediente,
     private fb: FormBuilder,
     private servicioAlerta: AlertaService,
     private archivoService: ArchivoService,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private alerta: AlertaService,
+    private servicioPaciente: ServicioPaciente
   ) {
     this.formularioExpediente = this.crearFormulario();
     this.configurarBusqueda();
@@ -85,6 +92,7 @@ export class ExpedienteListaComponent implements OnInit, AfterViewInit, OnDestro
     this.cargarInformacionUsuario();
     this.cargarExpedientes();
     this.cargarEstadisticas();
+    this.cargarPacientes();
   }
 
   ngAfterViewInit(): void {
@@ -202,7 +210,6 @@ export class ExpedienteListaComponent implements OnInit, AfterViewInit, OnDestro
         };
       }
     } catch (error) {
-      console.error('Error al cargar información del usuario:', error);
       this.informacionUsuario = { name: 'Usuario', avatar: null };
     }
     
@@ -289,7 +296,6 @@ descargarPDFExpediente(expediente: Expediente): void {
     this.pdfService.generarPDFExpediente(expedienteSeguro);
     this.servicioAlerta.alertaExito('PDF generado exitosamente');
   } catch (error) {
-    console.error('Error al generar PDF:', error);
     this.servicioAlerta.alertaError('Error al generar el PDF del expediente');
   }
 }
@@ -389,6 +395,13 @@ private obtenerNombrePaciente(expediente: Expediente): string {
     this.modoEdicion = false;
     this.expedienteSeleccionado = null;
     this.error = '';
+
+    if (!this.mostrarComoModal) {
+      this.pacienteSeleccionado = null;
+      this.pacienteSeleccionadoTexto = '';
+      this.busquedaPaciente = '';
+      this.datosPaciente = null;
+    }
   }
 
   // ==========================================
@@ -401,7 +414,6 @@ private obtenerNombrePaciente(expediente: Expediente): string {
    * Carga la lista de expedientes desde el servidor - ESTRUCTURA ARREGLADA
    */
 cargarExpedientes(): void {
-    console.log('📥 Cargando expedientes...');
     this.cargando = true;
     this.error = '';
 
@@ -409,10 +421,8 @@ cargarExpedientes(): void {
       .pipe(takeUntil(this.destruir$))
       .subscribe({
         next: (respuesta: RespuestaListaExpedientes) => {
-          console.log('📦 Respuesta completa del servidor:', respuesta);
           
           if (respuesta.exito && Array.isArray(respuesta.datos)) {
-            console.log('📋 Expedientes recibidos:', respuesta.datos.length);
             
             // Normalizar la estructura del paciente
             const expedientesNormalizados = respuesta.datos.map(exp => {
@@ -440,7 +450,6 @@ cargarExpedientes(): void {
               this.paginaActual = respuesta.paginacion.pagina;
             }
           } else {
-            console.warn('⚠️ Respuesta no válida:', respuesta);
             this.error = 'Error al cargar expedientes';
             this.expedientes = [];
             this.expedientesFiltrados = [];
@@ -449,7 +458,6 @@ cargarExpedientes(): void {
           this.cargando = false;
         },
         error: (error: any) => {
-          console.error('❌ Error al cargar expedientes:', error);
           this.error = 'Error de conexión';
           this.cargando = false;
           this.expedientes = [];
@@ -472,7 +480,6 @@ cargarExpedientes(): void {
           }
         },
         error: (error: any) => {
-          console.error('Error al cargar estadísticas:', error);
         }
       });
   }
@@ -527,7 +534,6 @@ cargarExpedientes(): void {
         await this.crearExpediente(datosExpediente);
       }
     } catch (error) {
-      console.error('Error en envío:', error);
       this.error = error instanceof Error ? error.message : 'Error desconocido';
       this.servicioAlerta.alertaError(this.error);
       this.cargando = false;
@@ -546,11 +552,13 @@ cargarExpedientes(): void {
     }
     
     // Agregar FK del paciente si está disponible
-  if (this.datosPaciente?.idpaciente) {
-    datos.fkpaciente = this.datosPaciente.idpaciente;
-  } else if (this.expedienteSeleccionado?.fkpaciente) {
-    datos.fkpaciente = this.expedienteSeleccionado.fkpaciente;
-  }
+    if (this.pacienteSeleccionado?.idpaciente) {
+      datos.fkpaciente = this.pacienteSeleccionado.idpaciente;
+    } else if (this.datosPaciente?.idpaciente) {
+      datos.fkpaciente = this.datosPaciente.idpaciente;
+    } else if (this.expedienteSeleccionado?.fkpaciente) {
+      datos.fkpaciente = this.expedienteSeleccionado.fkpaciente;
+    }
     
     // Limpiar campos vacíos
     Object.keys(datos).forEach(clave => {
@@ -687,29 +695,24 @@ eliminarExpediente(id: number): void {
  * Ejecuta la eliminación del expediente
  */
 private ejecutarEliminacion(id: number): void {
-  console.log('✅ Ejecutando eliminación del expediente:', id);
   this.cargando = true;
   
   this.servicioExpediente.eliminarExpediente(id)
     .pipe(takeUntil(this.destruir$))
     .subscribe({
       next: (respuesta: any) => {
-        console.log('📥 Respuesta del servidor:', respuesta);
         this.cargando = false;
         
         if (respuesta && respuesta.exito) {
-          console.log('✅ Expediente eliminado exitosamente');
           this.servicioAlerta.alertaExito('Expediente eliminado exitosamente');
           this.cargarExpedientes();
           this.cargarEstadisticas();
         } else {
-          console.warn('⚠️ Respuesta indica fallo:', respuesta);
           const mensajeError = respuesta?.mensaje || 'Error desconocido al eliminar expediente';
           this.servicioAlerta.alertaError(mensajeError);
         }
       },
       error: (error: any) => {
-        console.error('❌ Error completo al eliminar:', error);
         this.cargando = false;
         
         let mensajeError = 'Error al eliminar expediente';
@@ -735,7 +738,6 @@ private ejecutarEliminacion(id: number): void {
           mensajeError = 'Error interno del servidor al eliminar expediente';
         }
         
-        console.error('📢 Mostrando error al usuario:', mensajeError);
         this.servicioAlerta.alertaError(mensajeError);
       }
     });
@@ -787,7 +789,6 @@ private ejecutarEliminacion(id: number): void {
         this.servicioAlerta.alertaInfo(`Número sugerido: ${respuesta.datos.numeroexpediente}`);
       }
     } catch (error) {
-      console.error('Error al sugerir número:', error);
       this.servicioAlerta.alertaError('Error al generar número de expediente');
     }
   }
@@ -1098,5 +1099,117 @@ llenarFormulario(expediente: Expediente): void {
     const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
     return `${start} - ${end}`;
   }
-  
+
+  cargarPacientes(): void {
+    this.cargandoPacientes = true;
+    
+    this.servicioPaciente.obtenerTodosLosPacientes(1, 1000, '')
+      .pipe(takeUntil(this.destruir$))
+      .subscribe({
+        next: (respuesta: any) => {
+          if (respuesta.exito && Array.isArray(respuesta.datos)) {
+            // Filtrar solo pacientes activos
+            this.pacientes = respuesta.datos.filter((p: Paciente) => p.estado === 1);
+            this.pacientesFiltrados = [...this.pacientes];
+          }
+          this.cargandoPacientes = false;
+        },
+        error: (error: any) => {
+          this.servicioAlerta.alertaError('Error al cargar la lista de pacientes');
+          this.cargandoPacientes = false;
+        }
+      });
+  }
+
+  filtrarPacientes(): void {
+    const busqueda = this.busquedaPaciente.toLowerCase().trim();
+    
+    if (!busqueda) {
+      this.pacientesFiltrados = [...this.pacientes];
+      return;
+    }
+    
+    this.pacientesFiltrados = this.pacientes.filter(p => 
+      p.nombres.toLowerCase().includes(busqueda) ||
+      p.apellidos.toLowerCase().includes(busqueda) ||
+      p.cui.includes(busqueda)
+    );
+  }
+
+  abrirListaPacientes(): void {
+    this.mostrarListaPacientes = true;
+    
+    // Cargar pacientes si aún no se han cargado
+    if (this.pacientes.length === 0) {
+      this.cargarPacientes();
+    }
+  }
+
+  seleccionarPaciente(paciente: Paciente): void {
+    this.pacienteSeleccionado = paciente;
+    this.busquedaPaciente = ''; // Limpiar el campo de búsqueda
+    this.mostrarListaPacientes = false;
+    
+    // Actualizar el datosPaciente para que se use al crear el expediente
+    this.datosPaciente = {
+      idpaciente: paciente.idpaciente,
+      pacienteInfo: paciente
+    };
+  }
+
+  removerPacienteSeleccionado(): void {
+    this.pacienteSeleccionado = null;
+    this.busquedaPaciente = '';
+    this.datosPaciente = null;
+    this.mostrarListaPacientes = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  cerrarListaPacientes(event: Event): void {
+    const target = event.target as HTMLElement;
+    const clickDentro = target.closest('.campo-busqueda-paciente');
+    const clickEnBoton = target.closest('.btn-cambiar-paciente');
+    
+    // No cerrar si se hace click en el botón de cambiar
+    if (!clickDentro && !clickEnBoton) {
+      this.mostrarListaPacientes = false;
+    }
+  }
+
+  cambiarPaciente(): void {
+    this.busquedaPaciente = '';
+    this.mostrarListaPacientes = true;
+    
+    // Si no hay pacientes cargados, cargarlos
+    if (this.pacientes.length === 0) {
+      this.cargarPacientes();
+    }
+    
+    // Enfocar el campo de búsqueda
+    setTimeout(() => {
+      const input = document.querySelector('.campo-busqueda-paciente input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+      }
+    }, 100);
+  }
+
+  cargarPacientePorId(idPaciente: number): void {
+    this.servicioPaciente.obtenerPacientePorId(idPaciente)
+      .pipe(takeUntil(this.destruir$))
+      .subscribe({
+        next: (respuesta: any) => {
+          if (respuesta.exito && respuesta.datos) {
+            const paciente = Array.isArray(respuesta.datos) ? respuesta.datos[0] : respuesta.datos;
+            this.pacienteSeleccionado = paciente;
+            this.datosPaciente = {
+              idpaciente: paciente.idpaciente,
+              pacienteInfo: paciente
+            };
+          }
+        },
+        error: (error: any) => {
+        }
+      });
+  }
 }

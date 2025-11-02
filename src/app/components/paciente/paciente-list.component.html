@@ -42,13 +42,13 @@
               <th>Edad</th>
               <th>CUI</th>
               <th>Teléfono</th>
-              <th>Historial</th>
+              <th>No. Expediente</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let paciente of paginatedPacientes; let i = index" class="fila-tabla">
-              <td class="nombre-usuario" (click)="verPaciente(paciente)">
+            <tr *ngFor="let paciente of paginatedPacientes; let i = index" class="table-row">
+              <td class="user-name" (click)="verPaciente(paciente)">
                 {{ paciente.nombres }} {{ paciente.apellidos }}
               </td>
               <td>{{ paciente.genero === 'M' ? 'Masculino' : 'Femenino' }}</td>
@@ -70,29 +70,12 @@
               <!-- Columna de acciones con menú de tres puntos -->
               <td class="columna-acciones">
                 <div class="action-buttons">
-                  <!-- Ver Historial -->
-                  <button 
-                    class="btn-action btn-view" 
-                    (click)="verHistorialClinico(paciente)"
-                    title="Ver Historial Clínico"
-                    > 
-                    <i class="fas fa-file-medical-alt"></i>
-                  </button>
-
                   <!-- Editar -->
                   <button 
                     class="btn-action btn-edit" 
                     (click)="editarPaciente(paciente)"
                     title="Editar Paciente">
                     <i class="fas fa-edit"></i>
-                  </button>
-
-                  <!-- Ver Detalle -->
-                  <button 
-                    class="btn-action btn-info" 
-                    (click)="verDetallePaciente(paciente)"
-                    title="Ver Información Completa">
-                    <i class="fas fa-eye"></i>
                   </button>
 
                   <!-- Eliminar -->
@@ -103,18 +86,6 @@
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
-                <!-- <div class="contenedor-boton-acciones">
-                  <button 
-                    class="boton-tres-puntos"
-                    (click)="abrirModalAcciones(paciente, i)"
-                    type="button"
-                    [attr.aria-label]="'Opciones para ' + paciente.nombres + ' ' + paciente.apellidos"
-                  >
-                    <span class="punto"></span>
-                    <span class="punto"></span>
-                    <span class="punto"></span>
-                  </button>
-                </div> -->
               </td>
             </tr>
           </tbody>
@@ -319,11 +290,7 @@
       <div class="modal-body-scroll">
         
         <!-- Sección de fotografías -->
-        <div class="photo-section">
-          <!-- <h4 class="titulo-seccion">
-            <i class="fas fa-images"></i> Fotografías
-          </h4> -->
-          
+        <div class="photo-section">          
           <div class="photo-upload">
             <div class="photo-preview">
               <img *ngIf="fotoSeleccionada" [src]="fotoSeleccionada" alt="Preview" class="photo-img">

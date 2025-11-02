@@ -1,5 +1,5 @@
 // ================================================
-// MIXINS PARA MODALES
+// MIXINS PARA MODALES - VERSIÓN MEJORADA
 // ================================================
 
 // === MODAL BASE ===
@@ -9,30 +9,32 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   animation: modalBackdropFadeIn 0.3s ease-out;
 }
 
 // === CONTENEDOR DEL MODAL ===
 @mixin modal-container($max-width: 600px) {
   background: white;
-  border-radius: $border-radius-xl;
-  box-shadow: $shadow-xl;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.1);
   max-width: $max-width;
   width: 95%;
-  max-height: 95vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  animation: modalSlideIn 0.3s ease-out;
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
   
   @include mobile {
-    width: 98%;
-    max-height: 98vh;
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
   }
 }
 
@@ -40,18 +42,46 @@
 @mixin modal-header($bg-color: $primary-color) {
   @include flex-between;
   padding: $spacing-6;
-  border-bottom: 1px solid $gray-200;
-  background: linear-gradient(135deg, $bg-color, lighten($bg-color, 10%));
+  border-bottom: none;
+  background: linear-gradient(135deg, $bg-color 0%, darken($bg-color, 10%) 100%);
   color: white;
-  border-radius: $border-radius-xl $border-radius-xl 0 0;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  
+  // Efecto decorativo de fondo
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
   
   h3, h4 {
     font-size: $font-size-xl;
     font-weight: 600;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    position: relative;
+    z-index: 1;
+    
+    i {
+      font-size: $font-size-2xl;
+    }
     
     @include mobile {
       font-size: $font-size-lg;
+      
+      i {
+        font-size: $font-size-xl;
+      }
     }
   }
   
@@ -59,23 +89,39 @@
     background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    padding: $spacing-2;
-    border-radius: $border-radius-md;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     cursor: pointer;
-    transition: $transition-normal;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
     
     &:hover {
       background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.1);
+      transform: rotate(90deg) scale(1.1);
     }
     
     i {
-      font-size: $font-size-base;
+      font-size: $font-size-lg;
+    }
+    
+    @include mobile {
+      width: 32px;
+      height: 32px;
+      
+      i {
+        font-size: $font-size-base;
+      }
     }
   }
   
   @include mobile {
     padding: $spacing-4;
+    border-radius: 0;
   }
 }
 
@@ -84,8 +130,29 @@
   flex: 1;
   overflow-y: auto;
   padding: $spacing-6;
+  background: #fafbfc;
   
   @include scrollbar-thin;
+  
+  // Scrollbar personalizada mejorada
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f3f5;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
   
   @include mobile {
     padding: $spacing-4;
@@ -95,32 +162,98 @@
 // === FOOTER DEL MODAL ===
 @mixin modal-footer {
   padding: $spacing-6;
-  border-top: 1px solid $gray-200;
-  background: $gray-50;
-  border-radius: 0 0 $border-radius-xl $border-radius-xl;
+  border-top: 2px solid #e9ecef;
+  background: white;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
   
   .modal-actions {
     display: flex;
     gap: $spacing-3;
+    justify-content: flex-end;
+    
+    button {
+      padding: $spacing-3 $spacing-6;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: $font-size-base;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: $spacing-2;
+      position: relative;
+      overflow: hidden;
+      
+      i {
+        font-size: $font-size-base;
+      }
+      
+      // Efecto ripple
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      
+      &:active::before {
+        width: 300px;
+        height: 300px;
+      }
+    }
     
     .btn-cancel {
       @include button-outline($gray-500);
-      flex: 1;
+      background: #6c757d;
+      color: white;
+      
+      &:hover {
+        background: darken(#6c757d, 10%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
     }
     
     .btn-primary {
       @include button-primary;
-      flex: 2;
+      background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+      box-shadow: 0 2px 4px rgba($primary-color, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba($primary-color, 0.4);
+      }
     }
     
     .btn-success {
       @include button-success;
-      flex: 2;
+      background: linear-gradient(135deg, $success-color 0%, darken($success-color, 10%) 100%);
+      box-shadow: 0 2px 4px rgba($success-color, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba($success-color, 0.4);
+      }
     }
     
     .btn-save {
       @include button-success;
-      flex: 2;
+      background: linear-gradient(135deg, #28a745 0%, darken(#28a745, 10%) 100%);
+      color: white;
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+      }
       
       &:disabled {
         opacity: 0.6;
@@ -129,8 +262,30 @@
         
         &:hover {
           transform: none;
-          box-shadow: none;
+          box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
         }
+      }
+    }
+
+    .btn-editar {
+      background: linear-gradient(135deg, #ffc107 0%, darken(#ffc107, 10%) 100%);
+      color: #212529;
+      box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(255, 193, 7, 0.4);
+      }
+    }
+
+    .btn-pdf {
+      background: linear-gradient(135deg, #dc3545 0%, darken(#dc3545, 10%) 100%);
+      color: white;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
       }
     }
     
@@ -140,15 +295,19 @@
       .btn-cancel,
       .btn-primary,
       .btn-success,
-      .btn-save {
+      .btn-save,
+      .btn-editar,
+      .btn-pdf {
         flex: none;
         width: 100%;
+        justify-content: center;
       }
     }
   }
   
   @include mobile {
     padding: $spacing-4;
+    border-radius: 0;
   }
 }
 
@@ -166,7 +325,7 @@
   }
   
   .modal-content-large {
-    @include modal-container(900px);
+    @include modal-container(920px);
   }
   
   .modal-content-small {
@@ -212,10 +371,13 @@
       overflow: hidden;
       margin: 0 auto $spacing-4;
       border: 4px solid $gray-200;
-      transition: $transition-normal;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       
       &:hover {
         border-color: $primary-color;
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
       }
       
       .photo-img {
@@ -229,7 +391,7 @@
         height: 100%;
         @include flex-center;
         flex-direction: column;
-        background: $gray-100;
+        background: linear-gradient(135deg, $gray-100, $gray-200);
         color: $gray-400;
         
         i {
@@ -246,6 +408,8 @@
     .photo-btn {
       @include button-primary;
       font-size: $font-size-sm;
+      border-radius: 8px;
+      padding: $spacing-2 $spacing-4;
     }
   }
 }
@@ -253,43 +417,78 @@
 // === FORMULARIO EN MODAL ===
 @mixin modal-form {
   .form-section {
-    margin-bottom: $spacing-8;
+    background: white;
+    border-radius: 12px;
+    padding: $spacing-5;
+    margin-bottom: $spacing-5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
     
     .section-title {
       @include flex-start;
       gap: $spacing-3;
       font-size: $font-size-lg;
-      color: $gray-700;
-      margin-bottom: $spacing-6;
+      color: $primary-color;
+      margin-bottom: $spacing-5;
       padding-bottom: $spacing-3;
-      border-bottom: 2px solid $gray-200;
+      border-bottom: 2px solid #e9ecef;
+      font-weight: 600;
       
       i {
         color: $primary-color;
+        background: lighten($primary-color, 45%);
+        padding: $spacing-2;
+        border-radius: 8px;
+        font-size: $font-size-xl;
       }
     }
     
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: $spacing-4;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: $spacing-5;
       
       @include mobile {
         grid-template-columns: 1fr;
+        gap: $spacing-4;
       }
       
       .form-group {
         @include form-group;
+        display: flex;
+        flex-direction: column;
         
-        &.full-width {
+        &.full-width,
+        &.ancho-completo {
           grid-column: 1 / -1;
         }
         
         label {
           font-size: $font-size-sm;
           font-weight: 600;
-          color: $gray-700;
+          color: #495057;
           margin-bottom: $spacing-2;
+          display: flex;
+          align-items: center;
+          gap: $spacing-2;
+          
+          &::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, #e9ecef, transparent);
+            margin-left: $spacing-2;
+          }
           
           .required {
             color: $danger-color;
@@ -301,32 +500,101 @@
           }
         }
         
-        .form-input {
+        .form-input,
+        .entrada-formulario {
           @include input-base;
+          padding: $spacing-3;
+          border: 2px solid #dee2e6;
+          border-radius: 8px;
+          font-size: $font-size-base;
+          transition: all 0.3s ease;
+          background: white;
           
-          &.invalid {
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+            background: #fafbfc;
+          }
+          
+          &:hover:not(:focus) {
+            border-color: #adb5bd;
+          }
+          
+          &::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+          }
+          
+          &.invalid,
+          &.error {
             border-color: $danger-color;
             background: rgba($danger-color, 0.05);
             
             &:focus {
               border-color: $danger-color;
-              box-shadow: 0 0 0 3px rgba($danger-color, 0.1);
+              box-shadow: 0 0 0 3px rgba($danger-color, 0.15);
             }
           }
         }
         
-        .form-textarea {
+        .form-textarea,
+        .area-texto-formulario {
           @include input-base;
+          padding: $spacing-3;
+          border: 2px solid #dee2e6;
+          border-radius: 8px;
+          font-size: $font-size-base;
+          transition: all 0.3s ease;
+          background: white;
           resize: vertical;
           min-height: 80px;
           font-family: inherit;
+          
+          &.grande {
+            min-height: 120px;
+          }
+          
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+            background: #fafbfc;
+          }
+          
+          &:hover:not(:focus) {
+            border-color: #adb5bd;
+          }
+          
+          &::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+          }
         }
         
-        .error-message {
+        select.entrada-formulario,
+        select.form-input {
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+          padding-right: 40px;
+        }
+        
+        .error-message,
+        .texto-error {
           color: $danger-color;
-          font-size: $font-size-xs;
-          margin-top: $spacing-1;
-          display: block;
+          font-size: $font-size-sm;
+          margin-top: $spacing-2;
+          display: flex;
+          align-items: center;
+          gap: $spacing-2;
+          
+          &::before {
+            content: '⚠';
+            font-weight: bold;
+          }
         }
         
         // Input con icono (para contraseñas)
@@ -349,7 +617,7 @@
             color: $gray-400;
             cursor: pointer;
             padding: $spacing-1;
-            transition: $transition-normal;
+            transition: all 0.3s ease;
             
             &:hover {
               color: $primary-color;
@@ -359,6 +627,110 @@
               font-size: $font-size-sm;
             }
           }
+        }
+        
+        // Input con botón (como el de sugerir número)
+        .entrada-con-boton {
+          display: flex;
+          gap: $spacing-2;
+          
+          .entrada-formulario {
+            flex: 1;
+          }
+          
+          .boton-sugerir {
+            padding: $spacing-3;
+            background: linear-gradient(135deg, #ffc107 0%, darken(#ffc107, 10%) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+            }
+            
+            i {
+              font-size: $font-size-lg;
+            }
+          }
+        }
+        
+        // Campo IMC especial
+        .imc-solo-lectura {
+          background: #e9ecef !important;
+          cursor: not-allowed;
+          font-weight: 600;
+          color: $primary-color;
+        }
+        
+        .informacion-imc {
+          margin-top: $spacing-2;
+          padding: $spacing-2 $spacing-3;
+          background: #e7f3ff;
+          border-radius: 6px;
+          font-size: $font-size-sm;
+          font-weight: 600;
+          color: $primary-color;
+          display: inline-block;
+        }
+      }
+    }
+    
+    // Checkbox personalizado
+    .grupo-checkbox {
+      padding: $spacing-4;
+      background: #e7f3ff;
+      border-radius: 8px;
+      border: 2px dashed $primary-color;
+      
+      .etiqueta-checkbox {
+        display: flex;
+        align-items: center;
+        gap: $spacing-3;
+        cursor: pointer;
+        font-weight: 600;
+        color: $primary-color;
+        
+        input[type="checkbox"] {
+          appearance: none;
+          width: 24px;
+          height: 24px;
+          border: 2px solid $primary-color;
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.3s ease;
+          background: white;
+          
+          &:checked {
+            background: $primary-color;
+            
+            &::after {
+              content: '✓';
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              color: white;
+              font-size: 16px;
+              font-weight: bold;
+            }
+          }
+          
+          &:hover {
+            border-color: darken($primary-color, 10%);
+          }
+        }
+        
+        .marca-verificacion {
+          // Estilo adicional si es necesario
         }
       }
     }
@@ -374,6 +746,7 @@
     .confirmation-icon {
       font-size: 4rem;
       margin-bottom: $spacing-6;
+      animation: iconPulse 1s ease-in-out infinite;
       
       &.warning {
         color: $warning-color;
@@ -431,10 +804,19 @@
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-50px) scale(0.9);
+    transform: translateY(-50px) scale(0.95);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
   }
 }

@@ -20,6 +20,7 @@ import { UsuarioService, Usuario } from '../../services/usuario.service';
 import { AlertaService } from '../../services/alerta.service';
 import { Paciente, ServicioPaciente } from '../../services/paciente.service';
 import { AgendaService, CitaRequest } from '../../services/agenda.service';
+import { Router } from '@angular/router';
 
 // Interfaces
 export interface Cita {
@@ -156,7 +157,8 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     private PacienteService: ServicioPaciente,
     private alerta: AlertaService,
     private fb: FormBuilder,
-    private agendaService: AgendaService
+    private agendaService: AgendaService,
+    private router: Router 
   ) {
     this.initForm();
     this.fechaActual = new Date().toLocaleDateString('es-ES');
@@ -178,6 +180,12 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         this.resizeCalendar();
       }, 500);
     }, 100);
+  }
+
+  verHistorialClinico(paciente: any): void {
+    if (paciente.idpaciente) {
+      this.router.navigate(['/historial', paciente.idpaciente]);
+    }
   }
 
   loadUserInfo(): void {

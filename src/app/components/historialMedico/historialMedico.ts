@@ -16,12 +16,14 @@ import {
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { AlertaService } from '../../services/alerta.service';
 import { ArchivoService } from '../../services/archivo.service';
+import { Paciente } from '../../services/paciente.service';
+import { ReferidosComponent } from '../referidos/referidos.component';
 
 
 @Component({
   selector: 'app-historial-medico',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SidebarComponent,ReferidosComponent],
   templateUrl: './historialMedico.html',
   styleUrls: ['./historialMedico.scss']
 })
@@ -29,10 +31,12 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
   currentView: 'historial' | 'nueva-sesion' | 'diagnostico' | 'notas-rapidas' = 'historial';
   sidebarExpanded = true;
   loading = false;
+  pacienteParaReferir: Paciente | null = null;
   
   idPaciente: number = 0;
   infoPaciente: InfoPaciente | null = null;
   historialSesiones: HistorialMedico[] = [];
+  notasImportantes: HistorialMedico[] = [];
   sesionActual: HistorialMedico | null = null;
   userInfo: any = {};
   currentDate = new Date();
@@ -58,7 +62,7 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     public historialService: HistorialMedicoService,
     public archivoService: ArchivoService,
     private alerta: AlertaService,
@@ -78,7 +82,36 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // ✅ CORRECCIÓN 2: Agregar método público para formatear tamaño
+  //abrir modal de referido
+  abrirModalReferido(): void {
+    if (!this.infoPaciente) {
+      this.alerta.alertaError('No se encontró información del paciente');
+      return;
+    }
+
+    this.pacienteParaReferir = {
+      idpaciente: this.infoPaciente.idpaciente,
+      nombres: this.infoPaciente.nombres,
+      apellidos: this.infoPaciente.apellidos,
+      cui: this.infoPaciente.cui,
+      fechanacimiento: this.infoPaciente.fechanacimiento || '',
+      genero: '',
+      tipoconsulta: '',
+      municipio: '',
+      direccion: '',
+      expedientes: (this.infoPaciente.expedientes || []).map(exp => ({
+        ...exp,
+        idexpediente: (exp as any).idexpediente || 0
+      }))
+    };
+  }
+
+  // ✅ AGREGAR ESTE MÉTODO
+  onModalReferidoCerrado(): void {
+    this.pacienteParaReferir = null;
+  }
+
+  //  para formatear tamaño
     formatFileSize(size: number): string {
     return this.archivoService.formatearTamaño(size);
   }
@@ -146,7 +179,6 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
     if (datosPacienteStr) {
       try {
         const datosFromPacientes = JSON.parse(datosPacienteStr);
-        
         // Transformar los datos del formato de Paciente al formato de InfoPaciente
         this.infoPaciente = {
           idpaciente: datosFromPacientes.idpaciente,
@@ -157,7 +189,6 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
           expedientes: datosFromPacientes.expedientes || []
         };
         
-        // ✅ OBTENER FOTO DEL PACIENTE
         if (datosFromPacientes.rutafotoperfil) {
           this.fotoPacienteUrl = this.archivoService.obtenerUrlPublica(datosFromPacientes.rutafotoperfil);
         }
@@ -194,10 +225,10 @@ export class HistorialMedicoComponent implements OnInit, AfterViewInit {
     this.historialService.obtenerHistorialPorPaciente(this.idPaciente).subscribe({
       next: (historial: HistorialMedico[]) => {
         this.historialSesiones = historial;
+        this.cargarNotasImportantes();
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error cargando historial:', error);
         this.loading = false;
         this.alerta.alertaError('Error al cargar el historial médico');
       }
@@ -390,6 +421,7 @@ async crearSesion(): Promise<void> {
       // 3. Limpiar y recargar
       this.limpiarInputArchivos();
       this.cargarHistorial();
+      this.cargarNotasImportantes();
       this.mostrarHistorial();
       
     } catch (error: any) {
@@ -538,6 +570,7 @@ async guardarDiagnostico(): Promise<void> {
       // 3. Limpiar y recargar
       this.limpiarInputArchivos();
       this.cargarHistorial();
+      this.cargarNotasImportantes();
       this.mostrarHistorial();
       
     } catch (error: any) {
@@ -714,6 +747,15 @@ descargarArchivo(archivo: any): void {
   }
 
   volver(): void {
-    this.router.navigate(['/pacientes']);
+    this.router.navigate(['/agenda']);
+  }
+
+  cargarNotasImportantes(): void {
+    // Filtrar solo sesiones que tengan recordatorios
+    this.notasImportantes = this.historialSesiones
+      .filter(sesion => sesion.recordatorio && sesion.recordatorio.trim() !== '')
+      .slice(0, 3); // Mostrar máximo 3 notas más recientes
+      
+    console.log('✅ Notas importantes cargadas:', this.notasImportantes.length);
   }
 }
