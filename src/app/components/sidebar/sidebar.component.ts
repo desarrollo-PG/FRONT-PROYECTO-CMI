@@ -57,7 +57,6 @@ export class SidebarComponent {
       roles: [1, 2, 5, 6],
       children: [
         { label: 'Agenda', route: '/agenda', roles: [1, 2, 5, 6] }
-        // { label: 'Reporteria', route: '/reporteria', roles: [] },
         // { label: 'Administración', route: '/administracion', roles: [] },
         // { label: 'Educación Inclusiva', route: '/educacion-inclusiva', roles: [] },
         // { label: 'Fisioterapia', route: '/fisioterapia', roles: [] },
@@ -67,13 +66,12 @@ export class SidebarComponent {
       ]
     },
     {
-      label: 'Acerca de',
-      icon: 'fas fa-info-circle',
-      roles: [],
+      label: 'Reportes',
+      icon: 'fas fa-chart-bar',
+      roles: [1,5],
       children: [
-        { label: 'Quienes somos', route: '/acerca/nosotros', roles: [] },
-        { label: 'Misión y visión', route: '/acerca/mision', roles: [] },
-        { label: 'Contáctanos', route: '/acerca/contacto', roles: [] }
+        { label: 'Pacientes', route: '/repoPaciente', roles: [1,5] },
+        { label: 'Agenda', route: '/repoAgenda', roles: [1,5] }
       ]
     },
     {

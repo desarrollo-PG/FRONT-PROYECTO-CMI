@@ -20,8 +20,9 @@ import { UsuarioService, Usuario } from '../../services/usuario.service';
 import { AlertaService } from '../../services/alerta.service';
 import { Paciente, ServicioPaciente } from '../../services/paciente.service';
 import { AgendaService, CitaRequest } from '../../services/agenda.service';
+import { PdfExcelReporteriaService } from '../../services/pdf-excel-reporteria.service';
+import { HasRoleDirective } from '../../directives/has-role.directive';
 import { Router } from '@angular/router';
-
 // Interfaces
 export interface Cita {
   idagenda: number;
@@ -61,7 +62,8 @@ export interface ApiResponse<T> {
     FormsModule,
     ReactiveFormsModule,
     FullCalendarModule,
-    SidebarComponent
+    SidebarComponent,
+    HasRoleDirective
   ],
   templateUrl: './agenda.component.html',
   styleUrls: ['./agenda.component.scss']
@@ -78,8 +80,8 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     headerToolbar: false,
     locale: 'es',
     firstDay: 1,
-    height: 'auto',
-    contentHeight: 'auto',
+    height: '100%',
+    aspectRatio: 1.35, 
     
     // Configuración de eventos
     events: [],
@@ -158,6 +160,7 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     private alerta: AlertaService,
     private fb: FormBuilder,
     private agendaService: AgendaService,
+    private pdfExcelService: PdfExcelReporteriaService,
     private router: Router 
   ) {
     this.initForm();
@@ -311,7 +314,9 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         this.paciente = listadoUsuario;
       },
       error: (error) => {
-        console.error('Error al cargar los pacientes: ', error);
+        if (error.status === 403) {
+          return;
+        }
         this.alerta.alertaError('Error al cargar pacientes');
       }
     });
@@ -427,6 +432,28 @@ export class AgendaComponent implements OnInit, AfterViewInit {
       nombreEncargado: [{value: '', disabled: true}],
       contactoEncargado: [{value: '', disabled: true}]
     });
+
+    // Listener para sincronizar fecha de transporte cuando cambia fecha de atención
+    this.citaForm.get('fechaatencion')?.valueChanges.subscribe(nuevaFecha => {
+      if (nuevaFecha) {
+        const transporteValue = this.citaForm.get('transporte')?.value;
+        // Solo actualizar si el checkbox de transporte está marcado
+        if (transporteValue) {
+          this.citaForm.get('fechatransporte')?.setValue(nuevaFecha, { emitEvent: false });
+        }
+      }
+    });
+
+    // Listener para cuando se marque/desmarque el checkbox de transporte
+    this.citaForm.get('transporte')?.valueChanges.subscribe(transporte => {
+      if (transporte) {
+        // Si se marca transporte y hay una fecha de atención, copiarla
+        const fechaAtencion = this.citaForm.get('fechaatencion')?.value;
+        if (fechaAtencion) {
+          this.citaForm.get('fechatransporte')?.setValue(fechaAtencion, { emitEvent: false });
+        }
+      }
+    });
   }
 
   async cargarCitas(): Promise<void> {
@@ -466,7 +493,10 @@ export class AgendaComponent implements OnInit, AfterViewInit {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error cargando citas:', error);
+          this.loading = false;
+          if (error.status === 403) {
+            return;
+          }
           this.alerta.alertaError('Error al cargar las citas');
           this.loading = false;
         }
@@ -637,6 +667,18 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
     const transporteValue = this.citaForm.get('transporte')?.value;
     const transporteNumero = transporteValue ? 1 : 0;
+
+    if (transporteNumero === 1) {
+      const fechaTransporte = this.citaForm.get('fechatransporte')?.value;
+      const horarioTransporte = this.citaForm.get('horariotransporte')?.value;
+      const direccion = this.citaForm.get('direccion')?.value;
+
+      if (!fechaTransporte || !horarioTransporte || !direccion || direccion.trim() === '') {
+        this.alerta.alertaError('Cuando se solicita transporte, debe completar la fecha, hora y dirección del transporte');
+        this.loading = false;
+        return;
+      }
+    }
     
     const datosCita: CitaRequest = {
       fkusuario:         parseInt(this.citaForm.get('fkusuario')?.value),
@@ -656,23 +698,24 @@ export class AgendaComponent implements OnInit, AfterViewInit {
     if (this.modalMode === 'create') {
       this.agendaService.crearCita(datosCita).subscribe({
         next: (response) => {
-          if (response.exito || response.success) {
-            this.alerta.alertaExito('Cita creada exitosamente');
+          this.loading = false;
+          if (response.success) {
+            this.alerta.alertaExito(response.message || 'Cita creada exitosamente');
             this.cargarCitas();
             this.cerrarModal();
           } else {
-            this.alerta.alertaError(response.mensaje || response.message || 'Error al crear la cita');
+            this.alerta.alertaInfo(response.message || 'No se pudo crear la cita');
           }
-          this.loading = false;
         },
         error: (error) => {
-          console.error('Error al crear cita:', error);
-          this.alerta.alertaError('Error interno del servidor');
           this.loading = false;
+          if (error.status === 403) {
+            return;
+          }
+          this.alerta.alertaError('Error al crear cita. Intenta nuevamente.');
         }
       });
     } else if (this.modalMode === 'edit' && this.selectedCita) {
-      // Validar que selectedCita tenga idagenda
       if (!this.selectedCita.idagenda) {
         this.alerta.alertaError('Error: No se encontró el ID de la cita');
         this.loading = false;
@@ -681,19 +724,21 @@ export class AgendaComponent implements OnInit, AfterViewInit {
 
       this.agendaService.actualizarCita(this.selectedCita.idagenda, datosCita).subscribe({
         next: (response) => {
-          if (response.exito || response.success) {
-            this.alerta.alertaExito('Cita actualizada exitosamente');
+          this.loading = false;
+          if (response.success) {
+            this.alerta.alertaExito(response.message || 'Cita actualizada exitosamente');
             this.cargarCitas();
             this.cerrarModal();
           } else {
-            this.alerta.alertaError(response.mensaje || response.message || 'Error al actualizar la cita');
+            this.alerta.alertaInfo(response.message || 'No se pudo actualizar la cita');
           }
-          this.loading = false;
         },
         error: (error) => {
-          console.error('Error al actualizar cita:', error);
-          this.alerta.alertaError('Error interno del servidor');
           this.loading = false;
+          if (error.status === 403) {
+            return;
+          }
+          this.alerta.alertaError('Error al actualizar cita. Intenta nuevamente.');
         }
       });
     }
@@ -731,20 +776,20 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al eliminar cita:', error);
-        this.alerta.alertaError('Error al eliminar la cita');
         this.loading = false;
+        if (error.status === 403) {
+          return;
+        }
+        this.alerta.alertaError('Error al eliminar la cita');
       }
     });
   }
 
   cambiarVista(vista: string): void {
-    this.calendarView = vista;
+    this.currentView = vista;
     if (this.calendarComponent) {
       const api = this.calendarComponent.getApi();
-      const today = new Date();
       api.changeView(vista);
-      api.gotoDate(today);
       setTimeout(() => this.resizeCalendar(), 100);
     }
   }
@@ -820,21 +865,43 @@ export class AgendaComponent implements OnInit, AfterViewInit {
         this.loadingReporte = false;
       },
       error: (error) => {
-        console.error('Error al generar reporte:', error);
-        this.alerta.alertaError('Error al generar el reporte de transportes');
         this.loadingReporte = false;
+        if (error.status === 403) {
+          return;
+        }
+        this.alerta.alertaError('Error al generar el reporte de transportes');
       }
     });
   }
 
-  exportarReportePDF(): void {
-    // Implementar después si lo necesitas
-    this.alerta.alertaInfo('Función de exportar a PDF en desarrollo');
+  async exportarReportePDF(): Promise<void> {
+    if (this.reporteTransportes.length === 0) {
+      this.alerta.alertaError('No hay datos para exportar');
+      return;
+    }
+    
+    try {
+      await this.pdfExcelService.generarPDF('transporte', this.reporteTransportes);
+      this.alerta.alertaExito('PDF generado exitosamente');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      this.alerta.alertaError('Error al generar el PDF');
+    }
   }
 
   exportarReporteExcel(): void {
-    // Implementar después si lo necesitas
-    this.alerta.alertaInfo('Función de exportar a Excel en desarrollo');
+    if (this.reporteTransportes.length === 0) {
+      this.alerta.alertaError('No hay datos para exportar');
+      return;
+    }
+    
+    try {
+      this.pdfExcelService.generarExcel('transporte', this.reporteTransportes);
+      this.alerta.alertaExito('Excel generado exitosamente');
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      this.alerta.alertaError('Error al generar el Excel');
+    }
   }
 
   formatearHora(hora: any): string {

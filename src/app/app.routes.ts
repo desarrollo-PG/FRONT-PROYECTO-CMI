@@ -108,7 +108,27 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: [1,5] } //administración, sistemas
   },
-
+  {
+    path: 'reporteria',
+    loadComponent: () =>
+      import('./components/reporteria/reporteria.component').then(m => m.ReporteriaComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] } 
+  },
+  {
+    path: 'repoPaciente',
+    loadComponent: () =>
+      import('./components/repoPaciente/repoPaciente.component').then(m=> m.RepoPacientesComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] }
+  },
+  {
+    path: 'repoAgenda',
+    loadComponent: () =>
+      import('./components/repoAgenda/repoAgenda.component').then(m => m.RepoAgendaComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [1,5] }
+  },
   {
     path: '',
     redirectTo: '/login',

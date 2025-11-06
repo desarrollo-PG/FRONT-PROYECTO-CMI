@@ -1,0 +1,212 @@
+<div class="repo-agenda-container content-area" [class.sidebar-expanded]="sidebarExpanded">
+  <app-sidebar [userInfo]="userInfo"></app-sidebar>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div class="logo">
+        <img src="assets/img/LogoFraijanes.png" alt="Logo Fraijanes">
+      </div>
+      <h1>Reportes de Agenda</h1>
+    </header>
+
+    <!-- Tabs de navegación -->
+    <div class="tabs-container">
+      <button 
+        class="tab-button" 
+        [class.active]="tabActivo === 'terapeuta'"
+        (click)="cambiarTab('terapeuta')">
+        <i class="fas fa-user-md"></i> Consulta por Terapeuta
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="tabActivo === 'paciente'"
+        (click)="cambiarTab('paciente')">
+        <i class="fas fa-user"></i> Consulta por Paciente/Mes
+      </button>
+    </div>
+
+    <!-- Contenido del Tab: Consulta por Terapeuta -->
+    <div *ngIf="tabActivo === 'terapeuta'" class="tab-content">
+      <div class="filtros-card">
+        <h3>Filtros de Búsqueda por Terapeuta</h3>
+        
+        <div class="filtros-grid">
+          <div class="filtro-grupo">
+            <label for="filtroTerapeuta">Terapeuta:</label>
+            <select 
+              id="filtroTerapeuta" 
+              [(ngModel)]="filtroTerapeuta"
+              class="form-control">
+              <option value="T">Todos</option>
+              <option *ngFor="let terapeuta of terapeutas" [value]="terapeuta.id">
+                {{ terapeuta.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="filtroFecha">Fecha: <span class="required">*</span></label>
+            <input 
+              type="date" 
+              id="filtroFecha" 
+              [(ngModel)]="filtroFecha"
+              class="form-control"
+              required>
+          </div>
+
+          <div class="filtro-acciones">
+            <button 
+              class="btn btn-secondary" 
+              (click)="limpiarFiltrosTerapeuta()"
+              [disabled]="cargando">
+              <i class="fas fa-redo"></i> Limpiar
+            </button>
+            <button 
+              class="btn btn-primary" 
+              (click)="consultarPorTerapeuta()"
+              [disabled]="cargando || !filtroFecha">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido del Tab: Consulta por Paciente/Mes -->
+    <div *ngIf="tabActivo === 'paciente'" class="tab-content">
+      <div class="filtros-card">
+        <h3>Filtros de Búsqueda por Paciente y Mes</h3>
+        
+        <div class="filtros-grid filtros-grid-4">
+          <div class="filtro-grupo">
+            <label for="filtroPaciente">Paciente:</label>
+            <select 
+              id="filtroPaciente" 
+              [(ngModel)]="filtroPaciente"
+              class="form-control">
+              <option value="T">Todos</option>
+              <option *ngFor="let paciente of pacientes" [value]="paciente.id">
+                {{ paciente.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="filtroMes">Mes: <span class="required">*</span></label>
+            <select 
+              id="filtroMes" 
+              [(ngModel)]="filtroMes"
+              class="form-control"
+              required>
+              <option value="">Seleccione mes</option>
+              <option *ngFor="let mes of meses" [value]="mes.value">
+                {{ mes.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="filtroAnio">Año: <span class="required">*</span></label>
+            <select 
+              id="filtroAnio" 
+              [(ngModel)]="filtroAnio"
+              class="form-control"
+              required>
+              <option value="">Seleccione año</option>
+              <option *ngFor="let anio of anios" [value]="anio">
+                {{ anio }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filtro-acciones">
+            <button 
+              class="btn btn-secondary" 
+              (click)="limpiarFiltrosPaciente()"
+              [disabled]="cargando">
+              <i class="fas fa-redo"></i> Limpiar
+            </button>
+            <button 
+              class="btn btn-primary" 
+              (click)="consultarPorPacienteMes()"
+              [disabled]="cargando || !filtroMes || !filtroAnio">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de Carga -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando citas...</p>
+    </div>
+
+    <!-- Mensaje de Error -->
+    <div *ngIf="error" class="alert alert-error">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+    </div>
+
+    <!-- Mensaje Sin Datos -->
+    <div *ngIf="mostrarSinDatos && !cargando" class="alert alert-info">
+      <i class="fas fa-info-circle"></i>
+      No se encontraron citas con los filtros seleccionados.
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div *ngIf="!cargando && citas.length > 0" class="tabla-card">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="header-actions">
+          <span class="badge">{{ citas.length }} cita(s) encontrada(s)</span>
+          <button 
+            class="btn btn-print" 
+            (click)="imprimirReporte()">
+            <i class="fas fa-print"></i> Imprimir
+          </button>
+        </div>
+      </div>
+
+      <div class="tabla-responsive">
+        <table class="tabla-citas">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Terapeuta</th>
+              <th>Paciente</th>
+              <th>Encargado</th>
+              <th>Teléfono</th>
+              <th>Transporte</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cita of citas; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ formatearFechaTabla(cita.fechaatencion) }}</td>
+              <td>{{ cita.horaatencion }}</td>
+              <td>{{ cita.usuario.nombres }} {{ cita.usuario.apellidos }}</td>
+              <td>{{ cita.paciente.nombres }} {{ cita.paciente.apellidos }}</td>
+              <td>{{ cita.paciente.nombreencargado }}</td>
+              <td>{{ cita.paciente.telefonoencargado }}</td>
+              <td>
+                <span class="badge-transporte" [class.si]="cita.transporte === 1" 
+                      [class.no]="cita.transporte === 0">
+                  {{ cita.transporte === 1 ? 'Sí' : 'No' }}
+                </span>
+                <div *ngIf="cita.transporte === 1 && cita.fechatransporte" class="transporte-info">
+                  {{ formatearFechaTabla(cita.fechatransporte) }} - {{ cita.horariotransporte }}
+                </div>
+              </td>
+              <td>{{ cita.comentario || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
