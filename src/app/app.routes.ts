@@ -31,34 +31,34 @@ export const routes: Routes = [
     path: 'usuario', 
     loadComponent: () => import('./components/usuario/usuario.component').then(c => c.UsuarioComponent), 
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,2,5,6] } //administración, sistemas
+    data: { roles: [1,2,5] } //administración, sistemas
   },
   {
     path: 'pacientes',
     loadComponent: () =>
       import('./components/paciente/paciente-list.component').then(m => m.PacienteListaComponent), 
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas,fisioterapeuta
+    data: { roles: [1,2,5,6,14] } //administracion, medico-general, sistemas,fisioterapeuta
   },
   {
     path: 'expedientes',
     loadComponent: () =>
       import('./components/expediente/expediente').then(m => m.ExpedienteListaComponent), 
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
+    data: { roles: [1,2,5,6,14] } //administracion, medico-general, sistemas, fisioterapeuta
   },
   {
     path: 'historial/:id',
     loadComponent: () =>
       import('./components/historialMedico/historialMedico').then(m => m.HistorialMedicoComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
+    data: { roles: [1,2,5,6,14] } //administracion, medico-general, sistemas, fisioterapeuta
   },
   { 
     path: 'agenda', 
     loadComponent: () => import('./components/agenda/agenda.component').then(m => m.AgendaComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,2,5,6] } //administracion, medico-general, sistemas, fisioterapeuta
+    data: { roles: [1,2,4,5,6,14] } //administracion, medico-general, sistemas, fisioterapeuta
   },
   { 
      path: 'perfil', 
@@ -85,7 +85,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/gestionclinica/gestionclinica').then(m => m.GestionClinicaComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,5,6] } //administración, sistemas, fisioterapeuta
+    data: { roles: [1,4,5,6,14] } //administración, sistemas, fisioterapeuta
   },
   {
     path: 'medicina-general',
@@ -120,14 +120,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/repoPaciente/repoPaciente.component').then(m=> m.RepoPacientesComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,5] }
+    data: { roles: [1,4,5,14] }
   },
   {
     path: 'repoAgenda',
     loadComponent: () =>
       import('./components/repoAgenda/repoAgenda.component').then(m => m.RepoAgendaComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: [1,5] }
+    data: { roles: [1,4,5,14] }
   },
   {
     path: '',

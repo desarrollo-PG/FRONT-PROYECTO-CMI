@@ -43,10 +43,10 @@ export class SidebarComponent {
     {
       label: 'Gestión de Pacientes',
       icon: 'fas fa-hospital-user',
-      roles: [1, 2, 5, 6],
+      roles: [1, 2, 5, 6, 14],
       children: [
         { label: 'Pacientes', route: '/pacientes', roles: [1, 2, 5, 6, 14] },
-        { label: 'Expedientes', route: '/expedientes', roles: [1, 5, 6] },
+        { label: 'Expedientes', route: '/expedientes', roles: [1, 5, 6, 14] },
         { label: 'Referidos', route: '/referidos', roles: [] }
         // { label: 'Inventario', route: '/inventario', roles: [] }
       ]
@@ -54,9 +54,9 @@ export class SidebarComponent {
     {
       label: 'Gestión Clinica',
       icon: 'fas fa-hospital',
-      roles: [1, 2, 5, 6],
+      roles: [1, 2, 4, 5, 6, 14],
       children: [
-        { label: 'Agenda', route: '/agenda', roles: [1, 2, 5, 6] }
+        { label: 'Agenda', route: '/agenda', roles: [1, 2, 4, 5, 6, 14] }
         // { label: 'Administración', route: '/administracion', roles: [] },
         // { label: 'Educación Inclusiva', route: '/educacion-inclusiva', roles: [] },
         // { label: 'Fisioterapia', route: '/fisioterapia', roles: [] },
@@ -68,16 +68,16 @@ export class SidebarComponent {
     {
       label: 'Reportes',
       icon: 'fas fa-chart-bar',
-      roles: [1,5],
+      roles: [1,4,5],
       children: [
-        { label: 'Pacientes', route: '/repoPaciente', roles: [1,5] },
-        { label: 'Agenda', route: '/repoAgenda', roles: [1,5] }
+        { label: 'Pacientes', route: '/repoPaciente', roles: [1,4,5] },
+        { label: 'Agenda', route: '/repoAgenda', roles: [1,4,5] }
       ]
     },
     {
       label: 'Cerrar Sesión',
       icon: 'fas fa-sign-out-alt',
-      roles: [1, 2, 5, 6],
+      roles: [1, 2, 4, 5, 6, 14],
       route: '/logout'
     }
   ];
