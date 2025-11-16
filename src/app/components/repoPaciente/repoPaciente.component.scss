@@ -13,13 +13,11 @@
 }
 
 .repo-pacientes-container {
-  //padding: 20px;
   max-width: 100%;
   margin: 0 auto;
 
     .main-content {
         padding-top: 60px;
-        //margin-left: 250px; // Ancho del sidebar expandido
         width: calc(100% - 250px);
     }
 
@@ -197,21 +195,95 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
 
-      h3 {
-        color: #2c3e50;
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0;
+      .tabla-header-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        h3 {
+          color: #2c3e50;
+          font-size: 18px;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .badge {
+          background-color: #3498db;
+          color: white;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 500;
+        }
       }
 
-      .badge {
-        background-color: #3498db;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
+      .tabla-acciones {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .btn {
+          padding: 10px 16px;
+          border: none;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          white-space: nowrap;
+
+          i {
+            font-size: 14px;
+          }
+
+          span {
+            display: inline-block;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          &.btn-success {
+            background-color: #27ae60;
+            color: white;
+
+            &:hover:not(:disabled) {
+              background-color: #229954;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+            }
+          }
+
+          &.btn-danger {
+            background-color: #e74c3c;
+            color: white;
+
+            &:hover:not(:disabled) {
+              background-color: #c0392b;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+            }
+          }
+
+          &.btn-primary {
+            background-color: #3498db;
+            color: white;
+
+            &:hover:not(:disabled) {
+              background-color: #2980b9;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+            }
+          }
+        }
       }
     }
 
@@ -286,16 +358,41 @@
 // Estilos para impresión
 @media print {
   .filtros-card,
-  .filtro-acciones {
+  .filtro-acciones,
+  .tabla-acciones {
     display: none !important;
   }
 
   .tabla-card {
     box-shadow: none;
   }
+
+  .tabla-header {
+    padding: 10px !important;
+  }
 }
 
 // Responsive
+@media (max-width: 992px) {
+  .repo-pacientes-container {
+    .tabla-card {
+      .tabla-header {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .tabla-header-info {
+          width: 100%;
+        }
+
+        .tabla-acciones {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .repo-pacientes-container {
     padding: 12px;
@@ -317,6 +414,19 @@
       }
     }
 
+    .tabla-card {
+      .tabla-header {
+        .tabla-acciones {
+          flex-direction: column;
+
+          .btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      }
+    }
+
     .tabla-responsive {
       .tabla-pacientes {
         font-size: 12px;
@@ -324,6 +434,26 @@
         thead tr th,
         tbody tr td {
           padding: 10px 8px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .repo-pacientes-container {
+    .tabla-card {
+      .tabla-header {
+        .tabla-acciones {
+          .btn {
+            span {
+              display: none;
+            }
+
+            i {
+              margin: 0;
+            }
+          }
         }
       }
     }

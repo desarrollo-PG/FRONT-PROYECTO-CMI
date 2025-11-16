@@ -159,14 +159,24 @@
     <div *ngIf="!cargando && citas.length > 0" class="tabla-card">
       <div class="tabla-header">
         <h3>Resultados</h3>
-        <div class="header-actions">
-          <span class="badge">{{ citas.length }} cita(s) encontrada(s)</span>
-          <button 
-            class="btn btn-print" 
-            (click)="imprimirReporte()">
-            <i class="fas fa-print"></i> Imprimir
-          </button>
-        </div>
+          <div class="header-actions">
+            <span class="badge">{{ citas.length }} cita(s) encontrada(s)</span>
+            <button 
+              class="btn btn-excel" 
+              (click)="exportarExcel()">
+              <i class="fas fa-file-excel"></i> Excel
+            </button>
+            <button 
+              class="btn btn-pdf" 
+              (click)="exportarPDF()">
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button 
+              class="btn btn-print" 
+              (click)="imprimirReporte()">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+          </div>
       </div>
 
       <div class="tabla-responsive">
@@ -188,7 +198,7 @@
             <tr *ngFor="let cita of citas; let i = index">
               <td>{{ i + 1 }}</td>
               <td>{{ formatearFechaTabla(cita.fechaatencion) }}</td>
-              <td>{{ cita.horaatencion }}</td>
+              <td>{{ formatearHora(cita.horaatencion) }}</td>
               <td>{{ cita.usuario.nombres }} {{ cita.usuario.apellidos }}</td>
               <td>{{ cita.paciente.nombres }} {{ cita.paciente.apellidos }}</td>
               <td>{{ cita.paciente.nombreencargado }}</td>

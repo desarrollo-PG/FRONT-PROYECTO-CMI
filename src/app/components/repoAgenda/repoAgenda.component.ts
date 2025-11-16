@@ -1,3 +1,6 @@
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -139,6 +142,72 @@ export class RepoAgendaComponent implements OnInit {
             }
         });
     }
+
+  exportarExcel(): void {
+    const datosParaExportar = this.citas.map(cita => ({
+      'Fecha': this.formatearFechaTabla(cita.fechaatencion),
+      'Hora': this.formatearHora(cita.horaatencion), // Cambiado aquí
+      'Terapeuta': `${cita.usuario.nombres} ${cita.usuario.apellidos}`,
+      'Paciente': `${cita.paciente.nombres} ${cita.paciente.apellidos}`,
+      'Encargado': cita.paciente.nombreencargado,
+      'Teléfono': cita.paciente.telefonoencargado,
+      'Transporte': cita.transporte === 1 ? 'Sí' : 'No',
+      'Fecha Transporte': cita.fechatransporte ? this.formatearFechaTabla(cita.fechatransporte) : '-',
+      'Hora Transporte': cita.horariotransporte || '-',
+      'Comentario': cita.comentario || '-'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datosParaExportar);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Citas');
+    
+    const nombreArchivo = `reporte_agenda_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+  }
+
+  exportarPDF(): void {
+    const doc = new jsPDF('l');
+    
+    doc.setFontSize(16);
+    doc.text('Reporte de Agenda', 14, 15);
+    
+    const datosTabla = this.citas.map(cita => [
+      this.formatearFechaTabla(cita.fechaatencion),
+      this.formatearHora(cita.horaatencion), // Cambiado aquí
+      `${cita.usuario.nombres} ${cita.usuario.apellidos}`,
+      `${cita.paciente.nombres} ${cita.paciente.apellidos}`,
+      cita.paciente.nombreencargado,
+      cita.paciente.telefonoencargado,
+      cita.transporte === 1 ? 'Sí' : 'No',
+      cita.comentario || '-'
+    ]);
+
+    autoTable(doc, {
+      head: [['Fecha', 'Hora', 'Terapeuta', 'Paciente', 'Encargado', 'Teléfono', 'Transporte', 'Comentario']],
+      body: datosTabla,
+      startY: 25,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [65, 105, 225] }
+    });
+    
+    const nombreArchivo = `reporte_agenda_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(nombreArchivo);
+  }
+
+  formatearHora(hora: string): string {
+    if (!hora) return '-';
+    
+    // Si viene como timestamp completo (1970-01-01T10:00:00.000Z)
+    if (hora.includes('T')) {
+      const date = new Date(hora);
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    
+    // Si ya viene como hora (10:00:00 o 10:00)
+    return hora.substring(0, 5);
+  }
 
   loadUserInfo(): void {
     try {

@@ -22,7 +22,8 @@
                     id="filtroGenero" 
                     [(ngModel)]="filtroGenero" 
                     (change)="aplicarFiltros()"
-                    class="form-control">
+                    class="form-control"
+                    [disabled]="cargando || exportando">
                     <option *ngFor="let opcion of opcionesGenero" [value]="opcion.value">
                     {{ opcion.label }}
                     </option>
@@ -35,7 +36,8 @@
                     id="filtroEdad" 
                     [(ngModel)]="filtroEdad" 
                     (change)="aplicarFiltros()"
-                    class="form-control">
+                    class="form-control"
+                    [disabled]="cargando || exportando">
                     <option *ngFor="let opcion of opcionesEdad" [value]="opcion.value">
                     {{ opcion.label }}
                     </option>
@@ -46,7 +48,7 @@
                 <button 
                     class="btn btn-secondary" 
                     (click)="limpiarFiltros()"
-                    [disabled]="cargando">
+                    [disabled]="cargando || exportando">
                     <i class="fas fa-redo"></i> Limpiar
                 </button>
                 </div>
@@ -57,6 +59,12 @@
         <div *ngIf="cargando" class="loading-container">
         <div class="spinner"></div>
         <p>Cargando pacientes...</p>
+        </div>
+
+        <!-- Indicador de Exportación -->
+        <div *ngIf="exportando" class="loading-container">
+        <div class="spinner"></div>
+        <p>Generando archivo...</p>
         </div>
 
         <!-- Mensaje de Error -->
@@ -74,8 +82,40 @@
         <!-- Tabla de Resultados -->
         <div *ngIf="!cargando && pacientesFiltrados.length > 0" class="tabla-card">
         <div class="tabla-header">
+            <div class="tabla-header-info">
             <h3>Resultados</h3>
             <span class="badge">{{ pacientesFiltrados.length }} paciente(s) encontrado(s)</span>
+            </div>
+            
+            <!-- Botones de Exportación -->
+            <div class="tabla-acciones">
+            <button 
+                class="btn btn-success"
+                (click)="exportarExcel()"
+                [disabled]="exportando || pacientesFiltrados.length === 0"
+                title="Exportar a Excel">
+                <i class="fas fa-file-excel"></i>
+                <span>Excel</span>
+            </button>
+            
+            <button 
+                class="btn btn-danger"
+                (click)="exportarPDF()"
+                [disabled]="exportando || pacientesFiltrados.length === 0"
+                title="Exportar a PDF">
+                <i class="fas fa-file-pdf"></i>
+                <span>PDF</span>
+            </button>
+            
+            <button 
+                class="btn btn-primary"
+                (click)="imprimirReporte()"
+                [disabled]="exportando || pacientesFiltrados.length === 0"
+                title="Imprimir">
+                <i class="fas fa-print"></i>
+                <span>Imprimir</span>
+            </button>
+            </div>
         </div>
 
         <div class="tabla-responsive">

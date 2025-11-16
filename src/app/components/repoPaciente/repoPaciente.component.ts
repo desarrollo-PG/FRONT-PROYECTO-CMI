@@ -1,13 +1,17 @@
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';  // <-- AGREGAR ESTA LÍNEA
-import { RepoPacienteService, Paciente } from '../../services/repoPaciente.service';
+import { FormsModule } from '@angular/forms';
+import { RepoPacienteService, Paciente, FiltrosExportacion } from '../../services/repoPaciente.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
+
 @Component({
   selector: 'app-repo-pacientes',
-  standalone: true,  // <-- Asegúrate que esto esté en true
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -27,6 +31,7 @@ export class RepoPacientesComponent implements OnInit {
   cargando: boolean = false;
   error: string = '';
   mostrarSinDatos: boolean = false;
+  exportando: boolean = false;
 
   opcionesGenero = [
     { value: 'T', label: 'Todos' },
@@ -60,7 +65,6 @@ export class RepoPacientesComponent implements OnInit {
         this.userInfo = {
           name: `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim(),
           avatar: usuario.rutafotoperfil ? this.archivoService.obtenerUrlPublica(usuario.rutafotoperfil) : null
-          // role: usuario.fkrol || usuario.role || ''
         };
       } 
     } catch (error) {
@@ -208,11 +212,82 @@ export class RepoPacientesComponent implements OnInit {
     return edad;
   }
 
+  // ==========================================
+  // MÉTODOS DE EXPORTACIÓN
+  // ==========================================
+
+  obtenerFiltrosActuales(): FiltrosExportacion {
+    return {
+      genero: this.filtroGenero,
+      edad: this.filtroEdad
+    };
+  }
+
   exportarExcel(): void {
-    console.log('Exportar a Excel');
+    // Importa las librerías necesarias al inicio del archivo
+    // import * as XLSX from 'xlsx';
+    
+    const datosParaExportar = this.pacientesFiltrados.map(p => ({
+      'Nombres': p.nombres,
+      'Apellidos': p.apellidos,
+      'CUI': p.cui,
+      'Fecha Nacimiento': new Date(p.fechanacimiento).toLocaleDateString(),
+      'Edad': this.calcularEdad(p.fechanacimiento),
+      'Género': p.genero === 'M' ? 'Masculino' : 'Femenino',
+      'Tipo Discapacidad': p.tipodiscapacidad || 'N/A',
+      'Teléfono': p.telefonopersonal,
+      'Contacto Emergencia': p.nombrecontactoemergencia,
+      'Teléfono Emergencia': p.telefonoemergencia,
+      'Municipio': p.municipio,
+      'Aldea': p.aldea,
+      'Dirección': p.direccion,
+      'Estado': p.estado === 1 ? 'Activo' : 'Inactivo'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datosParaExportar);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pacientes');
+    
+    const nombreArchivo = `reporte_pacientes_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+  }
+
+  exportarPDF(): void {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text('Reporte de Pacientes', 14, 15);
+    
+    const datosTabla = this.pacientesFiltrados.map(p => [
+      p.nombres,
+      p.apellidos,
+      p.cui,
+      this.calcularEdad(p.fechanacimiento).toString(),
+      p.genero === 'M' ? 'M' : 'F',
+      p.telefonopersonal,
+      p.municipio
+    ]);
+
+    autoTable(doc, {
+      head: [['Nombres', 'Apellidos', 'CUI', 'Edad', 'Género', 'Teléfono', 'Municipio']],
+      body: datosTabla,
+      startY: 25,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+    
+    const nombreArchivo = `reporte_pacientes_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(nombreArchivo);
   }
 
   imprimirReporte(): void {
     window.print();
+  }
+
+  private mostrarMensajeExito(mensaje: string): void {
+    // Puedes implementar un sistema de notificaciones toast aquí
+    console.log(mensaje);
+    // Ejemplo simple con alert (puedes reemplazar con un toast mejor)
+    // alert(mensaje);
   }
 }
